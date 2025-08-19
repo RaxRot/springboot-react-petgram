@@ -31,6 +31,8 @@ public class User {
     private String password;
 
     private String profilePic;
+    @Column(nullable = false)
+    private boolean isBanned=false;
 
     public User(String userName, String email, String password) {
         this.userName = userName;
