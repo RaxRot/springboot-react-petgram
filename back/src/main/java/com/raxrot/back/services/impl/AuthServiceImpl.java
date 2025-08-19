@@ -12,6 +12,7 @@ import com.raxrot.back.security.dto.UserInfoResponse;
 import com.raxrot.back.security.jwt.JwtUtils;
 import com.raxrot.back.security.services.UserDetailsImpl;
 import com.raxrot.back.services.AuthService;
+import com.raxrot.back.services.EmailService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -40,6 +41,7 @@ public class AuthServiceImpl implements AuthService {
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
+    private final EmailService emailService;
 
     @Override
     public ResponseEntity<UserInfoResponse> authenticate(LoginRequest loginRequest) {
@@ -114,6 +116,7 @@ public class AuthServiceImpl implements AuthService {
 
         user.setRoles(roles);
         User saved = userRepository.save(user);
+        emailService.sendEmail(signUpRequest.getEmail(), "Welcome To PetGram","Your username for login is "+signUpRequest.getUsername());
 
         Map<String, Object> resp = Map.of(
                 "id", saved.getUserId(),
