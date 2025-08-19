@@ -30,6 +30,8 @@ public class User {
     @Column(nullable = false)
     private String password;
 
+    private String profilePic;
+
     public User(String userName, String email, String password) {
         this.userName = userName;
         this.email = email;
