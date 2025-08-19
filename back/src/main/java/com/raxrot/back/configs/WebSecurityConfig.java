@@ -1,16 +1,10 @@
 package com.raxrot.back.configs;
 
 
-import com.raxrot.back.models.AppRole;
-import com.raxrot.back.models.Role;
-import com.raxrot.back.models.User;
-import com.raxrot.back.repositories.RoleRepository;
-import com.raxrot.back.repositories.UserRepository;
 import com.raxrot.back.security.jwt.AuthEntryPointJwt;
 import com.raxrot.back.security.jwt.AuthTokenFilter;
 import com.raxrot.back.security.services.UserDetailsServiceImpl;
 import lombok.RequiredArgsConstructor;
-import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -29,9 +23,7 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 @Configuration
 @EnableWebSecurity
 @RequiredArgsConstructor
@@ -110,6 +102,7 @@ public class WebSecurityConfig {
         );
     }
 
+    /*
     @Bean
     public CommandLineRunner initData(RoleRepository roleRepository,
                                       UserRepository userRepository,
@@ -146,5 +139,5 @@ public class WebSecurityConfig {
                 }
             });
         };
-    }
+    } */
 }
