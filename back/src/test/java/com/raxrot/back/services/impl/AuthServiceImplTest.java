@@ -3,13 +3,15 @@ package com.raxrot.back.services.impl;
 import com.raxrot.back.exceptions.ApiException;
 import com.raxrot.back.models.AppRole;
 import com.raxrot.back.models.Role;
-import com.raxrot.back.models.User;import com.raxrot.back.repositories.RoleRepository;
+import com.raxrot.back.models.User;
+import com.raxrot.back.repositories.RoleRepository;
 import com.raxrot.back.repositories.UserRepository;
 import com.raxrot.back.security.dto.LoginRequest;
 import com.raxrot.back.security.dto.SignupRequest;
 import com.raxrot.back.security.dto.UserInfoResponse;
 import com.raxrot.back.security.jwt.JwtUtils;
 import com.raxrot.back.security.services.UserDetailsImpl;
+import com.raxrot.back.services.EmailService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
@@ -32,7 +34,7 @@ class AuthServiceImplTest {
     private UserRepository userRepository;
     private RoleRepository roleRepository;
     private PasswordEncoder passwordEncoder;
-
+    private EmailService emailService;
     private AuthServiceImpl authService;
 
     @BeforeEach
@@ -42,8 +44,9 @@ class AuthServiceImplTest {
         userRepository = mock(UserRepository.class);
         roleRepository = mock(RoleRepository.class);
         passwordEncoder = mock(PasswordEncoder.class);
+        emailService = mock(EmailService.class);
 
-        authService = new AuthServiceImpl(jwtUtils, authenticationManager, userRepository, roleRepository, passwordEncoder);
+        authService = new AuthServiceImpl(jwtUtils, authenticationManager, userRepository, roleRepository, passwordEncoder, emailService);
     }
 
     // --- authenticate ---
@@ -104,6 +107,9 @@ class AuthServiceImplTest {
         Map<?, ?> body = (Map<?, ?>) resp.getBody();
         assertEquals("newuser", body.get("username"));
         assertEquals(List.of("ROLE_USER"), body.get("roles"));
+
+        verify(emailService, times(1))
+                .sendEmail(eq("new@mail.com"), anyString(), contains("newuser"));
     }
 
     @Test
