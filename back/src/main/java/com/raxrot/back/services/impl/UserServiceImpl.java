@@ -131,6 +131,13 @@ public class UserServiceImpl implements UserService {
     public void banUser(Long userId) {
         User user=userRepository.findById(userId)
                 .orElseThrow(() -> new ApiException("User not found", HttpStatus.NOT_FOUND));
+
+        boolean isAdmin = user.getRoles().stream()
+                .anyMatch(r -> r.getRoleName() == AppRole.ROLE_ADMIN);
+        if (isAdmin) {
+            throw new ApiException("Admins cannot be banned", HttpStatus.CONFLICT);
+        }
+
         user.setBanned(true);
         userRepository.save(user);
     }
