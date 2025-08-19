@@ -14,4 +14,5 @@ public class UserResponse {
     private String userName;
     private String email;
     private String profilePic;
+    private boolean banned;
 }
