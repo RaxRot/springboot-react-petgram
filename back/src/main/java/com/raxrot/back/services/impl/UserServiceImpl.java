@@ -7,9 +7,9 @@ import com.raxrot.back.exceptions.ApiException;
 import com.raxrot.back.models.AppRole;
 import com.raxrot.back.models.User;
 import com.raxrot.back.repositories.UserRepository;
-import com.raxrot.back.security.services.UserDetailsImpl;
 import com.raxrot.back.services.FileUploadService;
 import com.raxrot.back.services.UserService;
+import com.raxrot.back.utils.AuthUtil;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
@@ -18,7 +18,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -31,17 +30,15 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final ModelMapper modelMapper;
     private final FileUploadService fileUploadService;
+    private final AuthUtil authUtil;
 
     @Transactional
     @Override
-    public UserResponse uploadImgProfilePic(MultipartFile file, Authentication authentication) {
+    public UserResponse uploadImgProfilePic(MultipartFile file) {
         if (file == null || file.isEmpty()) {
             throw new ApiException("File is empty", HttpStatus.BAD_REQUEST);
         }
-
-        UserDetailsImpl principal = (UserDetailsImpl) authentication.getPrincipal();
-        User user = userRepository.findById(principal.getId())
-                .orElseThrow(() -> new ApiException("User not found", HttpStatus.NOT_FOUND));
+        User user=authUtil.loggedInUser();
 
         String oldUrl = user.getProfilePic();
 

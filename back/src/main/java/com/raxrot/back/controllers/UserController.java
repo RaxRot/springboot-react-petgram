@@ -6,7 +6,6 @@ import com.raxrot.back.services.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -18,9 +17,8 @@ public class UserController {
 
     @PatchMapping(value="/uploadimg", consumes= MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<UserResponse> uploadImg(
-            @RequestParam("file") MultipartFile file,
-            Authentication authentication) {
-        UserResponse response = userService.uploadImgProfilePic(file, authentication);
+            @RequestParam("file") MultipartFile file) {
+        UserResponse response = userService.uploadImgProfilePic(file);
         return ResponseEntity.ok(response);
     }
 
