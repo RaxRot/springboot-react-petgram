@@ -1,12 +1,15 @@
 package com.raxrot.back.models;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 @Getter
@@ -48,4 +51,17 @@ public class User {
             joinColumns = @JoinColumn(name = "user_id"),
             inverseJoinColumns = @JoinColumn(name = "role_id"))
     private Set<Role> roles = new HashSet<>();
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL,orphanRemoval = true)
+    @JsonIgnore
+    private List<Post>posts = new ArrayList<>();
+
+    public void addPost(Post p) {
+        posts.add(p);
+        p.setUser(this);
+    }
+    public void removePost(Post p) {
+        posts.remove(p);
+        p.setUser(null);
+    }
 }
