@@ -23,6 +23,7 @@ public class Comment {
     private Long id;
 
     @Size(max = 500)
+    @Column(length = 500)
     private String text;
 
     @CreationTimestamp
