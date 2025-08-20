@@ -18,7 +18,5 @@ public class PostRequest {
     private String title;
 
     private String content;
-    private String imageUrl;
-
     private AnimalType animalType = AnimalType.OTHER;
 }
