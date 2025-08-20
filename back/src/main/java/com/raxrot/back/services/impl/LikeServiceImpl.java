@@ -50,7 +50,7 @@ public class LikeServiceImpl implements LikeService {
                 .orElseThrow(() -> new ApiException("Post not found", HttpStatus.NOT_FOUND));
 
         User user = authUtil.loggedInUser();
-        likeRepository.deleteByPost_IdAndUser_UserId(postId, user.getUserId()); // idempotent
+        likeRepository.deleteByPost_IdAndUser_UserId(postId, user.getUserId());
     }
 
     @Override
