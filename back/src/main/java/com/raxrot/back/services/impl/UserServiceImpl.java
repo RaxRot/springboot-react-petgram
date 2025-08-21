@@ -8,6 +8,7 @@ import com.raxrot.back.exceptions.ApiException;
 import com.raxrot.back.models.AppRole;
 import com.raxrot.back.models.User;
 import com.raxrot.back.repositories.UserRepository;
+import com.raxrot.back.services.EmailService;
 import com.raxrot.back.services.FileUploadService;
 import com.raxrot.back.services.UserService;
 import com.raxrot.back.utils.AuthUtil;
@@ -32,6 +33,7 @@ public class UserServiceImpl implements UserService {
     private final ModelMapper modelMapper;
     private final FileUploadService fileUploadService;
     private final AuthUtil authUtil;
+    private final EmailService emailService;
 
     @Transactional
     @Override
@@ -161,6 +163,21 @@ public class UserServiceImpl implements UserService {
 
         me.setUserName(newUsername);
         User saved = userRepository.save(me);
+
+        sendEmail(me, newUsername);
+
         return modelMapper.map(saved, UserResponse.class);
+    }
+
+    private void sendEmail(User me, String newUsername) {
+        emailService.sendEmail(
+                me.getEmail(),
+                "🔄 Your PetGram username has been updated!",
+                "Hello " + me.getUserName() + "!\n\n" +
+                        "✅ Your username has been successfully changed.\n\n" +
+                        "👉 Your new username is: " + newUsername + "\n\n" +
+                        "If you didn’t make this change, please contact our support immediately ⚠️\n\n" +
+                        "— The PetGram Team 🐾"
+        );
     }
 }
