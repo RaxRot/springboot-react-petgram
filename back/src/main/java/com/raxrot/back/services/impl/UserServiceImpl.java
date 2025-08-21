@@ -1,5 +1,6 @@
 package com.raxrot.back.services.impl;
 
+import com.raxrot.back.dtos.UpdateUsernameRequest;
 import com.raxrot.back.dtos.UserPageResponse;
 import com.raxrot.back.dtos.UserResponse;
 import com.raxrot.back.dtos.UserResponseForSearch;
@@ -146,5 +147,20 @@ public class UserServiceImpl implements UserService {
                 .orElseThrow(() -> new ApiException("User not found", HttpStatus.NOT_FOUND));
         user.setBanned(false);
         userRepository.save(user);
+    }
+
+    @Transactional
+    @Override
+    public UserResponse updateUsername(UpdateUsernameRequest request) {
+        String newUsername = request.getNewUsername();
+        User me = authUtil.loggedInUser();
+        if (newUsername.equals(me.getUserName()))
+            throw new ApiException("New username is the same as current", HttpStatus.BAD_REQUEST);
+        if (userRepository.existsByUserName(newUsername))
+            throw new ApiException("Username is already taken", HttpStatus.CONFLICT);
+
+        me.setUserName(newUsername);
+        User saved = userRepository.save(me);
+        return modelMapper.map(saved, UserResponse.class);
     }
 }
