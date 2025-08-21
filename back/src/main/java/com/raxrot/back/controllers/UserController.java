@@ -1,5 +1,6 @@
 package com.raxrot.back.controllers;
 
+import com.raxrot.back.dtos.ChangePasswordRequest;
 import com.raxrot.back.dtos.UpdateUsernameRequest;
 import com.raxrot.back.dtos.UserResponse;
 import com.raxrot.back.dtos.UserResponseForSearch;
@@ -69,4 +70,15 @@ public class UserController {
                 .header(HttpHeaders.SET_COOKIE, jwtCookie.toString())
                 .body(resp);
     }
+
+    @PatchMapping("/password")
+    public ResponseEntity<Void>updatePassword(@Valid @RequestBody ChangePasswordRequest req) {
+        userService.updatePassword(req);
+        ResponseCookie clean = jwtUtils.getCleanJwtCookie();
+        return ResponseEntity.noContent()
+                .header(HttpHeaders.SET_COOKIE, clean.toString())
+                .build();
+    }
+
+
 }

@@ -1,9 +1,6 @@
 package com.raxrot.back.services.impl;
 
-import com.raxrot.back.dtos.UpdateUsernameRequest;
-import com.raxrot.back.dtos.UserPageResponse;
-import com.raxrot.back.dtos.UserResponse;
-import com.raxrot.back.dtos.UserResponseForSearch;
+import com.raxrot.back.dtos.*;
 import com.raxrot.back.exceptions.ApiException;
 import com.raxrot.back.models.AppRole;
 import com.raxrot.back.models.User;
@@ -20,6 +17,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -34,6 +32,7 @@ public class UserServiceImpl implements UserService {
     private final FileUploadService fileUploadService;
     private final AuthUtil authUtil;
     private final EmailService emailService;
+    private final PasswordEncoder passwordEncoder;
 
     @Transactional
     @Override
@@ -167,6 +166,24 @@ public class UserServiceImpl implements UserService {
         sendEmail(me, newUsername);
 
         return modelMapper.map(saved, UserResponse.class);
+    }
+
+    @Transactional
+    @Override
+    public void updatePassword(ChangePasswordRequest request) {
+        User me = authUtil.loggedInUser();
+        if (!passwordEncoder.matches(request.getCurrentPassword(), me.getPassword())){
+            throw new ApiException("Current password does not match", HttpStatus.BAD_REQUEST);
+        }
+        if (!request.getNewPassword().equals(request.getConfirmPassword())) {
+            throw new ApiException("Confirm password does not match", HttpStatus.BAD_REQUEST);
+        }
+        if (passwordEncoder.matches(request.getNewPassword(), me.getPassword())){
+            throw new ApiException("New password is the same as current", HttpStatus.CONFLICT);
+        }
+
+        me.setPassword(passwordEncoder.encode(request.getNewPassword()));
+        userRepository.save(me);
     }
 
     private void sendEmail(User me, String newUsername) {

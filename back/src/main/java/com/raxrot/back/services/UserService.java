@@ -1,9 +1,6 @@
 package com.raxrot.back.services;
 
-import com.raxrot.back.dtos.UpdateUsernameRequest;
-import com.raxrot.back.dtos.UserPageResponse;
-import com.raxrot.back.dtos.UserResponse;
-import com.raxrot.back.dtos.UserResponseForSearch;
+import com.raxrot.back.dtos.*;
 import org.springframework.web.multipart.MultipartFile;
 
 public interface UserService {
@@ -16,4 +13,5 @@ public interface UserService {
     void banUser(Long userId);
     void unbanUser(Long userId);
     UserResponse updateUsername(UpdateUsernameRequest request);
+    void updatePassword(ChangePasswordRequest request);
 }
