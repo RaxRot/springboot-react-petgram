@@ -116,7 +116,7 @@ public class AuthServiceImpl implements AuthService {
 
         user.setRoles(roles);
         User saved = userRepository.save(user);
-        emailService.sendEmail(signUpRequest.getEmail(), "Welcome To PetGram","Your username for login is "+signUpRequest.getUsername());
+        sendEmail(signUpRequest);
 
         Map<String, Object> resp = Map.of(
                 "id", saved.getUserId(),
@@ -126,6 +126,18 @@ public class AuthServiceImpl implements AuthService {
         );
 
         return ResponseEntity.status(HttpStatus.CREATED).body(resp);
+    }
+
+    private void sendEmail(SignupRequest signUpRequest) {
+        emailService.sendEmail(
+                signUpRequest.getEmail(),
+                "🐾 Welcome to PetGram!",
+                "Hello " + signUpRequest.getUsername() + "!\n\n" +
+                        "🎉 Thanks for joining PetGram — the place where pets shine 🐶🐱\n\n" +
+                        "👉 Your username for login is: " + signUpRequest.getUsername() + "\n\n" +
+                        "Have fun sharing cute moments with your pets! 💕\n\n" +
+                        "— The PetGram Team"
+        );
     }
 
     @Override
