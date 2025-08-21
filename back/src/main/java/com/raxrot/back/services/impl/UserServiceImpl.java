@@ -163,7 +163,7 @@ public class UserServiceImpl implements UserService {
         me.setUserName(newUsername);
         User saved = userRepository.save(me);
 
-        sendEmail(me, newUsername);
+        sendEmailUsernameUpdated(me, newUsername);
 
         return modelMapper.map(saved, UserResponse.class);
     }
@@ -186,7 +186,26 @@ public class UserServiceImpl implements UserService {
         userRepository.save(me);
     }
 
-    private void sendEmail(User me, String newUsername) {
+    @Override
+    public void sendUsernameReminder(ForgotUsernameRequest request) {
+        userRepository.findByEmail(request.getEmail()).ifPresent(user -> {
+            sendEmailRemindUsername(user);
+        });
+    }
+
+    private void sendEmailRemindUsername(User user) {
+        emailService.sendEmail(
+                user.getEmail(),
+                "🔑 Your PetGram username reminder",
+                "Hello!\n\n" +
+                        "We received a request to remind you of your PetGram username.\n\n" +
+                        "👉 Your username is: " + user.getUserName() + "\n\n" +
+                        "If you didn’t request this reminder, you can safely ignore this email. ⚠️\n\n" +
+                        "— The PetGram Team 🐾"
+        );
+    }
+
+    private void sendEmailUsernameUpdated(User me, String newUsername) {
         emailService.sendEmail(
                 me.getEmail(),
                 "🔄 Your PetGram username has been updated!",

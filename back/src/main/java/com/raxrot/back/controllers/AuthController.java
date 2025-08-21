@@ -1,9 +1,11 @@
 package com.raxrot.back.controllers;
 
+import com.raxrot.back.dtos.ForgotUsernameRequest;
 import com.raxrot.back.security.dto.LoginRequest;
 import com.raxrot.back.security.dto.SignupRequest;
 import com.raxrot.back.security.dto.UserInfoResponse;
 import com.raxrot.back.services.AuthService;
+import com.raxrot.back.services.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -16,6 +18,7 @@ import org.springframework.web.bind.annotation.*;
 public class AuthController {
 
     private final AuthService authService;
+    private final UserService userService;
 
     @PostMapping("/signin")
     public ResponseEntity<UserInfoResponse> authenticateUser(@Valid @RequestBody LoginRequest loginRequest) {
@@ -40,5 +43,11 @@ public class AuthController {
     @PostMapping("/signout")
     public ResponseEntity<?> signoutUser() {
         return authService.signout();
+    }
+
+    @PostMapping("/forgot-username")
+    public ResponseEntity<String>remindUsername(@Valid @RequestBody ForgotUsernameRequest req) {
+        userService.sendUsernameReminder(req);
+        return ResponseEntity.ok("If this email exists, we sent you instructions");
     }
 }

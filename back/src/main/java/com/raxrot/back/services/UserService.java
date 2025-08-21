@@ -14,4 +14,5 @@ public interface UserService {
     void unbanUser(Long userId);
     UserResponse updateUsername(UpdateUsernameRequest request);
     void updatePassword(ChangePasswordRequest request);
+    void sendUsernameReminder(ForgotUsernameRequest request);
 }
