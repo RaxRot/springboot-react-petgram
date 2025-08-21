@@ -1,9 +1,6 @@
 package com.raxrot.back.controllers;
 
-import com.raxrot.back.dtos.ChangePasswordRequest;
-import com.raxrot.back.dtos.UpdateUsernameRequest;
-import com.raxrot.back.dtos.UserResponse;
-import com.raxrot.back.dtos.UserResponseForSearch;
+import com.raxrot.back.dtos.*;
 import com.raxrot.back.security.jwt.JwtUtils;
 import com.raxrot.back.security.services.UserDetailsImpl;
 import com.raxrot.back.services.UserService;
@@ -79,6 +76,4 @@ public class UserController {
                 .header(HttpHeaders.SET_COOKIE, clean.toString())
                 .build();
     }
-
-
 }
