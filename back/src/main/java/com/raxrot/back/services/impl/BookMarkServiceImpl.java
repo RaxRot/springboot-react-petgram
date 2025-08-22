@@ -1,4 +1,4 @@
-package com.raxrot.back.services;
+package com.raxrot.back.services.impl;
 
 import com.raxrot.back.dtos.PostPageResponse;
 import com.raxrot.back.dtos.PostResponse;
@@ -8,6 +8,7 @@ import com.raxrot.back.models.Post;
 import com.raxrot.back.models.User;
 import com.raxrot.back.repositories.BookmarkRepository;
 import com.raxrot.back.repositories.PostRepository;
+import com.raxrot.back.services.BookMarkService;
 import com.raxrot.back.utils.AuthUtil;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
