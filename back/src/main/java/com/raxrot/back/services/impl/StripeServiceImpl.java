@@ -72,8 +72,8 @@ public class StripeServiceImpl implements StripeService {
 
             Session session = Session.create(params);
 
-            sendEmailToDonationReciever(req, author, donor);
-            sentEmailToDonationSender(donor, author);
+             sendEmailToDonationReceiver(req, author, donor);
+             sendEmailToDonationSender(donor, author);
 
 
             return new StripeResponse(
@@ -87,7 +87,7 @@ public class StripeServiceImpl implements StripeService {
         }
     }
 
-    private void sentEmailToDonationSender(User donor, User author) {
+    private void sendEmailToDonationSender(User donor, User author) {
         emailService.sendEmail(
                 donor.getEmail(),
                 "🙏 Thank you for your donation! 🙏",
@@ -97,7 +97,7 @@ public class StripeServiceImpl implements StripeService {
         );
     }
 
-    private void sendEmailToDonationReciever(CheckoutRequest req, User author, User donor) {
+    private void sendEmailToDonationReceiver(CheckoutRequest req, User author, User donor) {
         emailService.sendEmail(
                 author.getEmail(),
                 "🎉 You received a donation! 🎉",
