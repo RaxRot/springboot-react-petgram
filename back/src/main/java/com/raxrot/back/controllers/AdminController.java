@@ -43,7 +43,7 @@ public class AdminController {
     @PatchMapping("/unban/{id}")
     public ResponseEntity<Void>unBanUser(@PathVariable Long id) {
         userService.unbanUser(id);
-        return new ResponseEntity<>(HttpStatus.OK);
+        return ResponseEntity.noContent().build();
     }
 
     @DeleteMapping("/{id}")

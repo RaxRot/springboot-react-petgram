@@ -1,10 +1,12 @@
 package com.raxrot.back.controllers;
 
-import com.raxrot.back.dtos.*;
+import com.raxrot.back.dtos.ChangePasswordRequest;
+import com.raxrot.back.dtos.UpdateUsernameRequest;
+import com.raxrot.back.dtos.UserResponse;
+import com.raxrot.back.dtos.UserResponseForSearch;
 import com.raxrot.back.security.jwt.JwtUtils;
 import com.raxrot.back.security.services.UserDetailsImpl;
 import com.raxrot.back.services.UserService;
-import com.raxrot.back.utils.AuthUtil;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
@@ -23,7 +25,6 @@ import org.springframework.web.multipart.MultipartFile;
 public class UserController {
     private final UserService userService;
     private final JwtUtils jwtUtils;
-    private final AuthUtil authUtil;
 
     @PatchMapping(value="/uploadimg", consumes= MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<UserResponse> uploadImg(

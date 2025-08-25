@@ -65,6 +65,7 @@ public class WebSecurityConfig {
                         .requestMatchers("/api/public/**").permitAll()
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .requestMatchers("/api/test/**").permitAll()
+                        .requestMatchers("/api/stripe/webhook").permitAll()
                         .requestMatchers("/error").permitAll()
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .anyRequest().authenticated()
