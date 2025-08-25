@@ -67,4 +67,11 @@ public class FollowServiceImpl implements FollowService {
                 .orElseThrow(() -> new ApiException("User not found", HttpStatus.NOT_FOUND));
         return followRepository.countByFollower_UserId(userId);
     }
+
+    @Override
+    public boolean isFollowing(Long targetUserId) {
+        User me = authUtil.loggedInUser();
+        if (me.getUserId().equals(targetUserId)) return false;
+        return followRepository.existsByFollower_UserIdAndFollowee_UserId(me.getUserId(), targetUserId);
+    }
 }

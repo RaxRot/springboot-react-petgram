@@ -5,4 +5,5 @@ public interface FollowService {
    void unfollowUser(Long followeeId);
    long getFollowersCount(Long userId);
    long getFollowingCount(Long userId);
+   boolean isFollowing(Long targetUserId);
 }

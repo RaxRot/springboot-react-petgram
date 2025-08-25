@@ -5,6 +5,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
+
 @RestController
 @RequestMapping("/api")
 @RequiredArgsConstructor
@@ -33,5 +35,11 @@ public class FollowController {
     public ResponseEntity<Long> getFollowingCount(@PathVariable Long userId) {
         long followingCount = followService.getFollowingCount(userId);
         return ResponseEntity.ok(followingCount);
+    }
+
+    @GetMapping("/users/{userId}/follow/state")
+    public ResponseEntity<Map<String, Boolean>> followState(@PathVariable Long userId) {
+        boolean following = followService.isFollowing(userId);
+        return ResponseEntity.ok(Map.of("following", following));
     }
 }
