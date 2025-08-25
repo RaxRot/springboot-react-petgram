@@ -15,4 +15,5 @@ public interface UserService {
     UserResponse updateUsername(UpdateUsernameRequest request);
     void updatePassword(ChangePasswordRequest request);
     void sendUsernameReminder(ForgotUsernameRequest request);
+    PublicUserResponse getPublicUserByUsername(String username);
 }

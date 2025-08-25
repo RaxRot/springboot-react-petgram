@@ -4,6 +4,7 @@ import com.raxrot.back.dtos.*;
 import com.raxrot.back.exceptions.ApiException;
 import com.raxrot.back.models.AppRole;
 import com.raxrot.back.models.User;
+import com.raxrot.back.repositories.FollowRepository;
 import com.raxrot.back.repositories.UserRepository;
 import com.raxrot.back.services.EmailService;
 import com.raxrot.back.services.FileUploadService;
@@ -33,6 +34,7 @@ public class UserServiceImpl implements UserService {
     private final AuthUtil authUtil;
     private final EmailService emailService;
     private final PasswordEncoder passwordEncoder;
+    private final FollowRepository followRepository;
 
     @Transactional
     @Override
@@ -215,5 +217,23 @@ public class UserServiceImpl implements UserService {
                         "If you didn’t make this change, please contact our support immediately ⚠️\n\n" +
                         "— The PetGram Team 🐾"
         );
+    }
+
+    @Override
+    public PublicUserResponse getPublicUserByUsername(String username) {
+        User user = userRepository.findByUserName(username)
+                .orElseThrow(() -> new ApiException("User not found", HttpStatus.NOT_FOUND));
+
+        long followers = followRepository.countByFollowee_UserId(user.getUserId());
+        long following = followRepository.countByFollower_UserId(user.getUserId());
+
+        PublicUserResponse resp = new PublicUserResponse();
+        resp.setId(user.getUserId());
+        resp.setUserName(user.getUserName());
+        resp.setProfilePic(user.getProfilePic());
+        resp.setFollowers(followers);
+        resp.setFollowing(following);
+        resp.setBanned(user.isBanned());
+        return resp;
     }
 }
