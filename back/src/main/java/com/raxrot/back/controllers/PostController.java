@@ -6,6 +6,7 @@ import com.raxrot.back.configs.AppConstants;
 import com.raxrot.back.dtos.PostPageResponse;
 import com.raxrot.back.dtos.PostRequest;
 import com.raxrot.back.dtos.PostResponse;
+import com.raxrot.back.enums.AnimalType;
 import com.raxrot.back.exceptions.ApiException;
 import com.raxrot.back.services.PostService;
 import lombok.RequiredArgsConstructor;
@@ -54,6 +55,17 @@ public class PostController {
             @RequestParam(name = "sortBy", defaultValue = AppConstants.SORT_CREATED_AT, required = false) String sortBy,
             @RequestParam(name = "sortOrder", defaultValue = AppConstants.SORT_DIR, required = false) String sortOrder){
         PostPageResponse postPageResponse = postService.getPostsByUsername(username,pageNumber, pageSize, sortBy, sortOrder);
+        return new ResponseEntity<>(postPageResponse, HttpStatus.OK);
+    }
+
+    @GetMapping("/public/posts/animal/{type}")
+    public ResponseEntity<PostPageResponse>getAllPostsByAnimalType(
+            @PathVariable AnimalType type,
+            @RequestParam(name = "pageNumber", defaultValue = AppConstants.PAGE_NUMBER, required = false) Integer pageNumber,
+            @RequestParam(name = "pageSize", defaultValue = AppConstants.PAGE_SIZE, required = false) Integer pageSize,
+            @RequestParam(name = "sortBy", defaultValue = AppConstants.SORT_USERS_BY, required = false) String sortBy,
+            @RequestParam(name = "sortOrder", defaultValue = AppConstants.SORT_DIR, required = false) String sortOrder){
+        PostPageResponse postPageResponse=postService.getPostsByAnimalType(type,pageNumber,pageSize,sortBy,sortOrder);
         return new ResponseEntity<>(postPageResponse, HttpStatus.OK);
     }
 

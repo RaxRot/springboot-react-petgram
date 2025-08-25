@@ -3,6 +3,7 @@ package com.raxrot.back.services.impl;
 import com.raxrot.back.dtos.PostPageResponse;
 import com.raxrot.back.dtos.PostRequest;
 import com.raxrot.back.dtos.PostResponse;
+import com.raxrot.back.enums.AnimalType;
 import com.raxrot.back.exceptions.ApiException;
 import com.raxrot.back.models.AppRole;
 import com.raxrot.back.models.Post;
@@ -131,5 +132,28 @@ public class PostServiceImpl implements PostService {
             }
         }
         postRepository.delete(post);
+    }
+
+    @Override
+    public PostPageResponse getPostsByAnimalType(AnimalType type, int page, int size, String sortBy, String sortOrder) {
+        Sort sort = sortOrder.equalsIgnoreCase("desc")
+                ? Sort.by(sortBy).descending()
+                : Sort.by(sortBy).ascending();
+
+        Pageable pageable = PageRequest.of(page, size, sort);
+        Page<Post> postPage = postRepository.findAllByAnimalType(type, pageable);
+        List<PostResponse> postResponses = postPage.getContent().stream()
+                .map(post -> modelMapper.map(post, PostResponse.class))
+                .collect(Collectors.toList());
+
+        PostPageResponse response = new PostPageResponse();
+        response.setContent(postResponses);
+        response.setPageNumber(postPage.getNumber());
+        response.setPageSize(postPage.getSize());
+        response.setTotalElements(postPage.getTotalElements());
+        response.setTotalPages(postPage.getTotalPages());
+        response.setLastPage(postPage.isLast());
+
+        return response;
     }
 }
