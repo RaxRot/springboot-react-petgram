@@ -6,40 +6,160 @@ import { api } from "@/lib/axios"
 import { toast } from "sonner"
 import { useNavigate } from "react-router-dom"
 
-const ANIMALS = ["DOG","CAT","BIRD","FISH","PIG","OTHER"]
+const ANIMALS = ["DOG", "CAT", "BIRD", "FISH", "PIG", "OTHER"]
+const ANIMAL_EMOJIS = {
+    "DOG": "🐕",
+    "CAT": "🐈",
+    "BIRD": "🐦",
+    "FISH": "🐠",
+    "PIG": "🐷",
+    "OTHER": "🐾"
+}
 
 export default function CreatePost() {
     const [title, setTitle] = useState("")
     const [content, setContent] = useState("")
     const [animalType, setAnimalType] = useState("OTHER")
     const [file, setFile] = useState(null)
+    const [isUploading, setIsUploading] = useState(false)
     const nav = useNavigate()
 
     const submit = async (e) => {
         e.preventDefault()
-        if (!file) return toast.error("Image is required")
+        if (!file) return toast.error("📸 Image is required")
+        setIsUploading(true)
+
         const data = new FormData()
         data.append("data", JSON.stringify({ title, content, animalType }))
         data.append("file", file)
+
         try {
             const res = await api.post("/api/posts", data, { headers: { "Content-Type": "multipart/form-data" } })
-            toast.success("Post created")
+            toast.success("🎉 Post created!")
             nav(`/posts/${res.data.id}`)
         } catch (e) {
-            toast.error(e.message)
+            toast.error(e.message || "🚫 Failed to create post")
+        } finally {
+            setIsUploading(false)
         }
     }
 
     return (
-        <form onSubmit={submit} className="max-w-xl mx-auto space-y-3">
-            <h1 className="text-2xl font-bold">Create Post</h1>
-            <Input placeholder="Title" value={title} onChange={e=>setTitle(e.target.value)} />
-            <Textarea placeholder="Content (optional)" value={content} onChange={e=>setContent(e.target.value)} />
-            <select value={animalType} onChange={e=>setAnimalType(e.target.value)} className="w-full rounded-xl border px-3 py-2">
-                {ANIMALS.map(a => <option key={a} value={a}>{a}</option>)}
-            </select>
-            <input type="file" accept="image/*" onChange={e=>setFile(e.target.files?.[0])} />
-            <Button type="submit" className="w-full">Publish</Button>
-        </form>
+        <div className="min-h-screen py-8 px-4">
+            <div className="max-w-xl mx-auto">
+                {/* Glass container */}
+                <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl p-8 shadow-2xl shadow-cyan-500/10">
+                    {/* Header */}
+                    <div className="text-center mb-8">
+                        <h1 className="text-3xl font-bold bg-gradient-to-r from-cyan-400 to-purple-600 bg-clip-text text-transparent">
+                            Create New Post
+                        </h1>
+                        <p className="text-gray-600 dark:text-gray-400 mt-2">Share your pet moments with the community</p>
+                    </div>
+
+                    <form onSubmit={submit} className="space-y-6">
+                        {/* Title */}
+                        <div className="space-y-2">
+                            <label className="text-sm font-semibold text-gray-700 dark:text-gray-300">Title *</label>
+                            <Input
+                                placeholder="Enter post title..."
+                                value={title}
+                                onChange={e => setTitle(e.target.value)}
+                                required
+                                className="w-full"
+                            />
+                        </div>
+
+                        {/* Content */}
+                        <div className="space-y-2">
+                            <label className="text-sm font-semibold text-gray-700 dark:text-gray-300">Content (optional)</label>
+                            <Textarea
+                                placeholder="Tell us about your pet..."
+                                value={content}
+                                onChange={e => setContent(e.target.value)}
+                                className="w-full min-h-32"
+                            />
+                        </div>
+
+                        {/* Animal Type */}
+                        <div className="space-y-2">
+                            <label className="text-sm font-semibold text-gray-700 dark:text-gray-300">Pet Type</label>
+                            <div className="relative">
+                                <select
+                                    value={animalType}
+                                    onChange={e => setAnimalType(e.target.value)}
+                                    className="w-full rounded-xl px-4 py-3 bg-white dark:bg-gray-900 border border-gray-300 dark:border-white/10 text-gray-900 dark:text-white appearance-none focus:ring-2 focus:ring-cyan-400 focus:border-cyan-400 transition-all duration-300"
+                                >
+                                    {ANIMALS.map(a => (
+                                        <option key={a} value={a}>
+                                            {ANIMAL_EMOJIS[a]} {a}
+                                        </option>
+                                    ))}
+                                </select>
+                                <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400">
+                                    ▼
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* File Upload */}
+                        <div className="space-y-2">
+                            <label className="text-sm font-semibold text-gray-700 dark:text-gray-300">Pet Photo *</label>
+                            <div className="border-2 border-dashed border-gray-300 dark:border-white/20 rounded-2xl p-6 text-center transition-all duration-300 hover:border-cyan-400 hover:bg-white/5">
+                                <input
+                                    type="file"
+                                    accept="image/*"
+                                    onChange={e => setFile(e.target.files?.[0])}
+                                    className="hidden"
+                                    id="file-upload"
+                                    required
+                                />
+                                <label htmlFor="file-upload" className="cursor-pointer">
+                                    <div className="text-4xl mb-2">📸</div>
+                                    <p className="text-gray-600 dark:text-gray-400">
+                                        {file ? file.name : "Click to upload or drag and drop"}
+                                    </p>
+                                    <p className="text-sm text-gray-500 dark:text-gray-500 mt-1">
+                                        PNG, JPG, GIF up to 10MB
+                                    </p>
+                                </label>
+                            </div>
+                            {file && (
+                                <div className="text-sm text-green-600 dark:text-green-400 flex items-center gap-1">
+                                    <span>✅</span>
+                                    File selected: {file.name}
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Submit Button */}
+                        <Button
+                            type="submit"
+                            disabled={isUploading || !file}
+                            className="w-full py-3 text-lg font-semibold mt-6"
+                            variant={isUploading ? "ghost" : "primary"}
+                        >
+                            {isUploading ? (
+                                <span className="flex items-center gap-2">
+                                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                                    Publishing...
+                                </span>
+                            ) : (
+                                <span className="flex items-center gap-2">
+                                    <span>🚀</span>
+                                    Publish Post
+                                </span>
+                            )}
+                        </Button>
+                    </form>
+                </div>
+
+                {/* Background elements */}
+                <div className="absolute inset-0 -z-10 overflow-hidden">
+                    <div className="absolute -top-20 -right-20 w-96 h-96 bg-cyan-500/10 rounded-full blur-3xl animate-float"></div>
+                    <div className="absolute -bottom-20 -left-20 w-96 h-96 bg-purple-600/10 rounded-full blur-3xl animate-float" style={{ animationDelay: '2s' }}></div>
+                </div>
+            </div>
+        </div>
     )
 }

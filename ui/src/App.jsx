@@ -14,8 +14,6 @@ import Settings from "@/pages/Settings"
 import { Protected, AdminOnly } from "@/components/Protected"
 import PaymentSuccess from "@/pages/payments/PaymentSuccess"
 import PaymentCancel from "@/pages/payments/PaymentCancel"
-
-// NEW
 import MessagesList from "@/pages/messages/MessagesList"
 import Chat from "@/pages/messages/Chat"
 
@@ -26,7 +24,8 @@ export default function App() {
     return (
         <div className="min-h-dvh flex flex-col">
             <Navbar />
-            <main className="max-w-6xl mx-auto px-4 py-6 w-full">
+            {/* Добавляем отступ равный высоте навбара (h-20) + дополнительный padding (py-6) */}
+            <main className="max-w-7xl mx-auto px-6 w-full pt-24 pb-12">
                 <Routes>
                     <Route path="/" element={<HomeFeed/>} />
                     <Route path="/signin" element={<SignIn/>} />
@@ -41,8 +40,6 @@ export default function App() {
                         <Route path="/create" element={<CreatePost/>} />
                         <Route path="/bookmarks" element={<Bookmarks/>} />
                         <Route path="/settings" element={<Settings/>} />
-
-                        {/* NEW: messages */}
                         <Route path="/messages" element={<MessagesList/>} />
                         <Route path="/messages/:username" element={<Chat/>} />
                     </Route>

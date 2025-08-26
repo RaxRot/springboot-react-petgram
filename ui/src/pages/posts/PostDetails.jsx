@@ -6,10 +6,10 @@ import { toast } from "sonner";
 import { useAuth } from "@/store/auth";
 import { useState } from "react";
 import Input from "@/components/ui/Input";
-
 import FollowButton from "@/components/FollowButton";
 import { confirmToast } from "@/components/ui/Confirm";
 import ResponsiveImage from "@/components/ui/ResponsiveImage";
+import Skeleton from "@/components/ui/Skeleton";
 
 export default function PostDetails() {
     const { id } = useParams();
@@ -59,20 +59,20 @@ export default function PostDetails() {
 
     const bookmark = useMutation({
         mutationFn: async () => api.post(`/api/posts/${id}/bookmarks`),
-        onSuccess: () => toast.success("Saved to bookmarks"),
+        onSuccess: () => toast.success("✅ Saved to bookmarks"),
     });
     const unbookmark = useMutation({
         mutationFn: async () => api.delete(`/api/posts/${id}/bookmarks`),
-        onSuccess: () => toast.info("Removed from bookmarks"),
+        onSuccess: () => toast.info("🔔 Removed from bookmarks"),
     });
 
     const del = useMutation({
         mutationFn: async () => api.delete(`/api/posts/${id}`),
         onSuccess: () => {
-            toast.success("Post deleted");
+            toast.success("🗑️ Post deleted");
             window.history.back();
         },
-        onError: () => toast.error("Failed to delete post"),
+        onError: () => toast.error("🚫 Failed to delete post"),
     });
 
     const addComment = useMutation({
@@ -85,19 +85,37 @@ export default function PostDetails() {
     const deleteComment = useMutation({
         mutationFn: async (cid) => api.delete(`/api/comments/${cid}`),
         onSuccess: () => {
-            toast.success("Comment removed");
+            toast.success("🗑️ Comment removed");
             qc.invalidateQueries({ queryKey: ["comments", id] });
         },
     });
 
     const banUser = useMutation({
         mutationFn: async (userId) => api.patch(`/api/admin/users/ban/${userId}`),
-        onSuccess: () => toast.success("User banned"),
-        onError: () => toast.error("Failed to ban"),
+        onSuccess: () => toast.success("🔨 User banned"),
+        onError: () => toast.error("🚫 Failed to ban"),
     });
 
-    if (postQ.isLoading) return <p>Loading...</p>;
-    if (postQ.error) return <p className="text-red-500">{postQ.error.message}</p>;
+    if (postQ.isLoading) return (
+        <div className="max-w-2xl mx-auto p-6 space-y-6">
+            <Skeleton className="h-10 w-3/4" variant="text"/>
+            <Skeleton className="h-4 w-32" variant="text"/>
+            <Skeleton className="h-96 w-full rounded-2xl" variant="image"/>
+            <div className="flex gap-2 flex-wrap">
+                <Skeleton className="h-10 w-20 rounded-xl" variant="button"/>
+                <Skeleton className="h-10 w-20 rounded-xl" variant="button"/>
+                <Skeleton className="h-10 w-20 rounded-xl" variant="button"/>
+            </div>
+        </div>
+    );
+
+    if (postQ.error) return (
+        <div className="max-w-2xl mx-auto p-6">
+            <div className="bg-red-500/10 border border-red-500/30 rounded-2xl p-4 text-red-600 dark:text-red-300">
+                Error: {postQ.error.message}
+            </div>
+        </div>
+    );
 
     const p = postQ.data;
     const canDelete = user && (isAdmin() || user.username === p.user?.userName);
@@ -112,101 +130,155 @@ export default function PostDetails() {
     };
 
     return (
-        <div className="max-w-2xl mx-auto space-y-6">
-            <div>
-                <h1 className="text-2xl font-bold">{p.title}</h1>
-                <div className="text-xs opacity-60">{p.animalType}</div>
+        <div className="max-w-2xl mx-auto p-6 space-y-6">
+            {/* Header */}
+            <div className="bg-white dark:bg-white/5 backdrop-blur-sm rounded-2xl p-6 border border-gray-200 dark:border-white/10">
+                <h1 className="text-3xl font-bold text-gray-900 dark:text-white">{p.title}</h1>
+                <div className="text-sm text-cyan-600 dark:text-cyan-400 font-medium mt-1">
+                    {p.animalType}
+                </div>
 
-                {/* Автор + переход на профиль + Follow */}
-                <div className="text-sm mt-2 flex items-center gap-3">
-                    <Link to={`/u/${p.user?.userName}`} className="hover:underline">
-                        @{p.user?.userName ?? "user"}
+                {/* Author info */}
+                <div className="flex items-center gap-3 mt-4">
+                    <Link
+                        to={`/u/${p.user?.userName}`}
+                        className="flex items-center gap-2 group"
+                    >
+                        <div className="w-10 h-10 bg-gradient-to-r from-cyan-400 to-purple-600 rounded-full flex items-center justify-center text-white font-bold">
+                            {p.user?.userName?.[0]?.toUpperCase()}
+                        </div>
+                        <span className="text-gray-700 dark:text-gray-300 group-hover:text-cyan-600 dark:group-hover:text-cyan-400 transition-colors">
+                            @{p.user?.userName ?? "user"}
+                        </span>
                     </Link>
+
                     {authorIdQ.data && user && user.username !== p.user?.userName && (
                         <FollowButton followeeId={authorIdQ.data} />
                     )}
                 </div>
 
-                {/* Картинка и текст */}
-                {p.imageUrl && <ResponsiveImage src={p.imageUrl} alt={p.title} className="mt-3" />}
-                {p.content && <p className="mt-3">{p.content}</p>}
-            </div>
-
-            {/* Действия */}
-            <div className="flex flex-wrap items-center gap-2">
-                <Button
-                    onClick={() => toast.promise(like.mutateAsync(), { loading: "Liking...", success: "Liked", error: "Failed" })}
-                >
-                    Like
-                </Button>
-                <Button
-                    variant="outline"
-                    onClick={() =>
-                        toast.promise(unlike.mutateAsync(), { loading: "Unliking...", success: "Unliked", error: "Failed" })
-                    }
-                >
-                    Unlike
-                </Button>
-                <span className="text-sm opacity-70">❤ {likesCountQ.data ?? 0}</span>
-
-                <Button
-                    className="ml-2"
-                    onClick={() =>
-                        toast.promise(bookmark.mutateAsync(), { loading: "Saving...", success: "Saved", error: "Failed" })
-                    }
-                >
-                    Bookmark
-                </Button>
-                <Button
-                    variant="outline"
-                    onClick={() =>
-                        toast.promise(unbookmark.mutateAsync(), { loading: "Removing...", success: "Removed", error: "Failed" })
-                    }
-                >
-                    Unbookmark
-                </Button>
-
-                {canDelete && (
-                    <Button variant="danger" className="ml-auto" onClick={onDeleteClick}>
-                        Delete
-                    </Button>
+                {/* Content */}
+                {p.content && (
+                    <p className="mt-4 text-gray-700 dark:text-gray-300 leading-relaxed">
+                        {p.content}
+                    </p>
                 )}
             </div>
 
-            {/* Комментарии */}
-            <section className="space-y-3">
-                <h2 className="text-xl font-semibold">Comments</h2>
+            {/* Image */}
+            {p.imageUrl && (
+                <div className="bg-white dark:bg-white/5 backdrop-blur-sm rounded-2xl overflow-hidden border border-gray-200 dark:border-white/10">
+                    <ResponsiveImage src={p.imageUrl} alt={p.title} />
+                </div>
+            )}
+
+            {/* Actions */}
+            <div className="bg-white dark:bg-white/5 backdrop-blur-sm rounded-2xl p-4 border border-gray-200 dark:border-white/10">
+                <div className="flex flex-wrap items-center gap-3">
+                    <Button
+                        onClick={() => like.mutate()}
+                        className="flex items-center gap-2"
+                        variant="outline"
+                    >
+                        <span>❤️</span>
+                        Like
+                    </Button>
+
+                    <Button
+                        onClick={() => unlike.mutate()}
+                        variant="ghost"
+                        className="flex items-center gap-2"
+                    >
+                        <span>💔</span>
+                        Unlike
+                    </Button>
+
+                    <span className="text-lg font-semibold text-cyan-600 dark:text-cyan-400">
+                        ❤ {likesCountQ.data ?? 0}
+                    </span>
+
+                    <div className="flex-1"></div>
+
+                    <Button
+                        onClick={() => bookmark.mutate()}
+                        className="flex items-center gap-2"
+                        variant="outline"
+                    >
+                        <span>🔖</span>
+                        Save
+                    </Button>
+
+                    <Button
+                        onClick={() => unbookmark.mutate()}
+                        variant="ghost"
+                        className="flex items-center gap-2"
+                    >
+                        <span>📑</span>
+                        Unsave
+                    </Button>
+
+                    {canDelete && (
+                        <Button
+                            variant="danger"
+                            onClick={onDeleteClick}
+                            className="flex items-center gap-2"
+                        >
+                            <span>🗑️</span>
+                            Delete
+                        </Button>
+                    )}
+                </div>
+            </div>
+
+            {/* Comments */}
+            <section className="bg-white dark:bg-white/5 backdrop-blur-sm rounded-2xl p-6 border border-gray-200 dark:border-white/10">
+                <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">Comments 💬</h2>
 
                 {commentsQ.data?.content?.map((c) => (
-                    <div key={c.id} className="rounded-xl border p-3 flex items-start justify-between gap-3">
-                        <div>
-                            <div className="text-xs opacity-60">@{c.author?.userName ?? "user"}</div>
-                            <p className="mt-1">{c.text}</p>
-                        </div>
+                    <div key={c.id} className="bg-gray-50 dark:bg-white/10 rounded-2xl p-4 mb-3 border border-gray-200 dark:border-white/10">
+                        <div className="flex items-start justify-between gap-4">
+                            <div className="flex-1">
+                                <div className="flex items-center gap-2 mb-2">
+                                    <div className="w-8 h-8 bg-gradient-to-r from-cyan-400 to-purple-600 rounded-full flex items-center justify-center text-white text-xs font-bold">
+                                        {c.author?.userName?.[0]?.toUpperCase()}
+                                    </div>
+                                    <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                        @{c.author?.userName ?? "user"}
+                                    </span>
+                                </div>
+                                <p className="text-gray-800 dark:text-gray-200">{c.text}</p>
+                            </div>
 
-                        <div className="flex items-center gap-2">
-                            {user && (isAdmin() || user.id === c.author?.id) && (
-                                <Button variant="outline" onClick={() => deleteComment.mutate(c.id)} className="px-3 py-1">
-                                    Delete
-                                </Button>
-                            )}
+                            <div className="flex items-center gap-2">
+                                {user && (isAdmin() || user.id === c.author?.id) && (
+                                    <Button
+                                        variant="outline"
+                                        onClick={() => deleteComment.mutate(c.id)}
+                                        className="px-3 py-1 text-sm"
+                                        size="sm"
+                                    >
+                                        🗑️
+                                    </Button>
+                                )}
 
-                            {isAdmin() && c.author?.id && (
-                                <Button
-                                    size="sm"
-                                    variant="outline"
-                                    onClick={async () => {
-                                        const ok = await confirmToast({
-                                            title: `Ban @${c.author?.userName}?`,
-                                            desc: "The user will lose posting/commenting ability.",
-                                            okText: "Ban",
-                                        });
-                                        if (ok) banUser.mutate(c.author.id);
-                                    }}
-                                >
-                                    Ban
-                                </Button>
-                            )}
+                                {isAdmin() && c.author?.id && (
+                                    <Button
+                                        size="sm"
+                                        variant="outline"
+                                        onClick={async () => {
+                                            const ok = await confirmToast({
+                                                title: `Ban @${c.author?.userName}?`,
+                                                desc: "The user will lose posting/commenting ability.",
+                                                okText: "Ban",
+                                            });
+                                            if (ok) banUser.mutate(c.author.id);
+                                        }}
+                                        className="px-3 py-1 text-sm"
+                                    >
+                                        🔨
+                                    </Button>
+                                )}
+                            </div>
                         </div>
                     </div>
                 ))}
@@ -217,14 +289,21 @@ export default function PostDetails() {
                             e.preventDefault();
                             if (comment.trim()) addComment.mutate(comment.trim());
                         }}
-                        className="flex gap-2"
+                        className="flex gap-3 mt-6"
                     >
                         <Input
-                            placeholder="Write a comment…"
+                            placeholder="Write your comment…"
                             value={comment}
                             onChange={(e) => setComment(e.target.value)}
+                            className="flex-1"
                         />
-                        <Button type="submit">Send</Button>
+                        <Button
+                            type="submit"
+                            disabled={!comment.trim()}
+                            className="px-6"
+                        >
+                            💬 Send
+                        </Button>
                     </form>
                 )}
             </section>
