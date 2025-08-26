@@ -156,4 +156,30 @@ public class PostServiceImpl implements PostService {
 
         return response;
     }
+
+    @Override
+    public PostPageResponse getFollowingFeed(int page, int size, String sortBy, String sortOrder) {
+        User me = authUtil.loggedInUser();
+
+        Sort sort = "desc".equalsIgnoreCase(sortOrder)
+                ? Sort.by(sortBy).descending()
+                : Sort.by(sortBy).ascending();
+
+        Pageable pageable = PageRequest.of(page, size, sort);
+
+        Page<Post> postPage = postRepository.findFollowingFeed(me.getUserId(), pageable);
+
+        List<PostResponse> content = postPage.getContent().stream()
+                .map(p -> modelMapper.map(p, PostResponse.class))
+                .toList();
+
+        PostPageResponse resp = new PostPageResponse();
+        resp.setContent(content);
+        resp.setPageNumber(postPage.getNumber());
+        resp.setPageSize(postPage.getSize());
+        resp.setTotalElements(postPage.getTotalElements());
+        resp.setTotalPages(postPage.getTotalPages());
+        resp.setLastPage(postPage.isLast());
+        return resp;
+    }
 }

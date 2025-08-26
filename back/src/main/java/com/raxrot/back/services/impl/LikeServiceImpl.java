@@ -21,6 +21,7 @@ public class LikeServiceImpl implements LikeService {
     private final LikeRepository likeRepository;
     private final AuthUtil authUtil;
 
+
     @Transactional
     @Override
     public void likePost(Long postId) {
@@ -38,6 +39,7 @@ public class LikeServiceImpl implements LikeService {
             like.setPost(post);
             like.setUser(user);
             likeRepository.save(like);
+
         } catch (DataIntegrityViolationException e) {
 
         }

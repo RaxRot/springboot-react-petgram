@@ -19,6 +19,7 @@ public class FollowServiceImpl implements FollowService {
     private final UserRepository userRepository;
     private final AuthUtil authUtil;
 
+
     @Transactional
     @Override
     public void followUser(Long followeeId) {
@@ -38,6 +39,7 @@ public class FollowServiceImpl implements FollowService {
         f.setFollower(me);
         f.setFollowee(userToFollow);
         followRepository.save(f);
+
     }
 
     @Transactional

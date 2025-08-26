@@ -80,4 +80,14 @@ public class PostController {
         postService.deletePost(postId);
         return ResponseEntity.noContent().build();
     }
+
+    @GetMapping("/posts/feed/following")
+    public ResponseEntity<PostPageResponse> getFollowingFeed(
+            @RequestParam(name = "pageNumber", defaultValue = AppConstants.PAGE_NUMBER) Integer page,
+            @RequestParam(name = "pageSize",   defaultValue = AppConstants.PAGE_SIZE)   Integer size,
+            @RequestParam(name = "sortBy",     defaultValue = AppConstants.SORT_CREATED_AT) String sortBy,
+            @RequestParam(name = "sortOrder",  defaultValue = AppConstants.SORT_DIR)   String sortOrder
+    ) {
+        return ResponseEntity.ok(postService.getFollowingFeed(page, size, sortBy, sortOrder));
+    }
 }

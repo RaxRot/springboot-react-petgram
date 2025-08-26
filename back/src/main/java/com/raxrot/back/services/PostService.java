@@ -13,4 +13,5 @@ public interface PostService {
     PostPageResponse getPostsByUsername(String username, Integer pageNumber, Integer pageSize, String sortBy, String sortOrder);
     void deletePost(Long postId);
     PostPageResponse getPostsByAnimalType(AnimalType type, int page, int size, String sortBy, String sortOrder);
+    PostPageResponse getFollowingFeed(int page, int size, String sortBy, String sortOrder);
 }
