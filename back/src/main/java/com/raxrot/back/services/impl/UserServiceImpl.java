@@ -4,8 +4,7 @@ import com.raxrot.back.dtos.*;
 import com.raxrot.back.exceptions.ApiException;
 import com.raxrot.back.models.AppRole;
 import com.raxrot.back.models.User;
-import com.raxrot.back.repositories.FollowRepository;
-import com.raxrot.back.repositories.UserRepository;
+import com.raxrot.back.repositories.*;
 import com.raxrot.back.services.EmailService;
 import com.raxrot.back.services.FileUploadService;
 import com.raxrot.back.services.UserService;
@@ -35,6 +34,10 @@ public class UserServiceImpl implements UserService {
     private final EmailService emailService;
     private final PasswordEncoder passwordEncoder;
     private final FollowRepository followRepository;
+    private final LikeRepository likeRepository;
+    private final PostRepository postRepository;
+    private final BookmarkRepository bookmarkRepository;
+    private final CommentRepository commentRepository;
 
     @Transactional
     @Override
@@ -63,23 +66,34 @@ public class UserServiceImpl implements UserService {
     @Transactional
     @Override
     public void deleteUserById(Long userId) {
-        User user=userRepository.findById(userId)
+        User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ApiException("User not found", HttpStatus.NOT_FOUND));
+
         boolean isAdmin = user.getRoles().stream()
                 .anyMatch(role -> role.getRoleName() == AppRole.ROLE_ADMIN);
-        if (!isAdmin) {
-            String profilePic = user.getProfilePic();
-            if (profilePic != null && !profilePic.isBlank()) {
-                try {
-                    fileUploadService.deleteFile(profilePic);
-                } catch (Exception ignored) {
-
-                }
-            }
-            userRepository.delete(user);
-        }else{
+        if (isAdmin) {
             throw new ApiException("Impossible to delete ADMIN", HttpStatus.CONFLICT);
         }
+
+
+        followRepository.deleteAllByFollower_UserId(userId);
+        followRepository.deleteAllByFollowee_UserId(userId);
+
+
+        likeRepository.deleteAllByUser_UserId(userId);
+        bookmarkRepository.deleteAllByUser_UserId(userId);
+        commentRepository.deleteAllByAuthor_UserId(userId);
+
+
+        postRepository.deleteAllByUser_UserId(userId);
+
+
+        String profilePic = user.getProfilePic();
+        if (profilePic != null && !profilePic.isBlank()) {
+            try { fileUploadService.deleteFile(profilePic); } catch (Exception ignored) {}
+        }
+
+        userRepository.delete(user);
     }
 
     @Override
