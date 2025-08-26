@@ -38,6 +38,7 @@ public class UserServiceImpl implements UserService {
     private final PostRepository postRepository;
     private final BookmarkRepository bookmarkRepository;
     private final CommentRepository commentRepository;
+    private final MessageRepository messageRepository;
 
     @Transactional
     @Override
@@ -75,18 +76,17 @@ public class UserServiceImpl implements UserService {
             throw new ApiException("Impossible to delete ADMIN", HttpStatus.CONFLICT);
         }
 
+        messageRepository.deleteAllForUser(userId);
+
 
         followRepository.deleteAllByFollower_UserId(userId);
         followRepository.deleteAllByFollowee_UserId(userId);
-
 
         likeRepository.deleteAllByUser_UserId(userId);
         bookmarkRepository.deleteAllByUser_UserId(userId);
         commentRepository.deleteAllByAuthor_UserId(userId);
 
-
         postRepository.deleteAllByUser_UserId(userId);
-
 
         String profilePic = user.getProfilePic();
         if (profilePic != null && !profilePic.isBlank()) {
@@ -95,6 +95,7 @@ public class UserServiceImpl implements UserService {
 
         userRepository.delete(user);
     }
+
 
     @Override
     public UserPageResponse getAllUsers(Integer pageNumber, Integer pageSize, String sortBy, String sortOrder) {

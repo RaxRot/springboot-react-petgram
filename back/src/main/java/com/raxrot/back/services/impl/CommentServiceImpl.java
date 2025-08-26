@@ -32,6 +32,7 @@ public class CommentServiceImpl implements CommentService {
     private final AuthUtil authUtil;
     private final ModelMapper modelMapper;
 
+
     @Transactional
     @Override
     public CommentResponse addComment(Long postId, CommentRequest req) {
@@ -46,6 +47,9 @@ public class CommentServiceImpl implements CommentService {
         comment.setPost(post);
         comment.setAuthor(user);
         Comment savedComment=commentRepository.save(comment);
+
+
+
         return modelMapper.map(savedComment, CommentResponse.class);
     }
 

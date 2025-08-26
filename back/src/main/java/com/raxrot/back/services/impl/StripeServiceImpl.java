@@ -2,6 +2,7 @@ package com.raxrot.back.services.impl;
 
 import com.raxrot.back.dtos.CheckoutRequest;
 import com.raxrot.back.dtos.StripeResponse;
+
 import com.raxrot.back.exceptions.ApiException;
 import com.raxrot.back.models.User;
 import com.raxrot.back.repositories.UserRepository;
@@ -74,7 +75,6 @@ public class StripeServiceImpl implements StripeService {
 
              sendEmailToDonationReceiver(req, author, donor);
              sendEmailToDonationSender(donor, author);
-
 
             return new StripeResponse(
                     "success",
