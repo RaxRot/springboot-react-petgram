@@ -112,6 +112,10 @@
             <artifactId>stripe-java</artifactId>
             <version>29.4.0</version>
         </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-websocket</artifactId>
+        </dependency>
 
     </dependencies>
 
