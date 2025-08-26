@@ -9,4 +9,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 public interface PostRepository extends JpaRepository<Post, Long> {
     Page<Post> findAllByUser_UserName(String username, Pageable pageable);
     Page<Post> findAllByAnimalType(AnimalType animalType, Pageable pageable);
+    void deleteAllByUser_UserId(Long userId);
 }
