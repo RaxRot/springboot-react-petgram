@@ -8,6 +8,7 @@ import com.raxrot.back.services.AuthService;
 import com.raxrot.back.services.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
@@ -32,6 +33,10 @@ public class AuthController {
 
     @GetMapping("/user")
     public ResponseEntity<UserInfoResponse> getUserInfo(Authentication authentication) {
+        if (authentication == null || !authentication.isAuthenticated()
+                || authentication instanceof org.springframework.security.authentication.AnonymousAuthenticationToken) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
         return authService.getUserInfo(authentication);
     }
 
