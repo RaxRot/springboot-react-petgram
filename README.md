@@ -22,12 +22,6 @@ A small but powerful social network where users can:
 
 ## 📸 Screenshots
 
-### ✉️ Registration Email
-![Registration Screenshot](docs/screen1.png)
-
-### 💸 Stripe Donation Flow
-![Donation Screenshot](docs/screen2.png)
-
 ### 📬 Chat Between Users
 ![Chat Screenshot](docs/screen3.png)
 
@@ -55,6 +49,11 @@ A small but powerful social network where users can:
 ### 🔧 Account Settings
 ![Account Settings Screenshot](docs/screen11.png)
 
+### ✉️ Registration Email
+![Registration Screenshot](docs/screen1.png)
+
+### 💸 Stripe Donation Flow
+![Donation Screenshot](docs/screen2.png)
 ---
 
 ## 🛠 Tech Stack
