@@ -43,6 +43,18 @@ A small but powerful social network where users can:
 ### 👤 User Profile
 ![Profile Screenshot](docs/screen7.png)
 
+### ✍️ Create Post
+![Create Post Screenshot](docs/screen8.png)
+
+### 👤 User Profile (detailed)
+![Profile Screenshot 2](docs/screen9.png)
+
+### 📝 Registration (form)
+![Registration Screenshot 2](docs/screen10.png)
+
+### 🔧 Account Settings
+![Account Settings Screenshot](docs/screen11.png)
+
 ---
 
 ## 🛠 Tech Stack
