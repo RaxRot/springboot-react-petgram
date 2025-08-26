@@ -6,6 +6,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
 import java.time.LocalDateTime;
 
@@ -31,10 +33,12 @@ public class Follow {
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "follower_id", nullable = false)
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private User follower;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "followee_id", nullable = false)
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private User followee;
 
     @Column(updatable = false)
