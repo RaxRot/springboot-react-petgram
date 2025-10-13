@@ -11,7 +11,7 @@ import org.springframework.test.context.ActiveProfiles;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
-
+//test from dari
 @DataJpaTest
 @ActiveProfiles("test")
 class RoleRepositoryTest {
