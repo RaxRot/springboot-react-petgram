@@ -5,28 +5,24 @@ import com.raxrot.back.models.Role;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import org.springframework.test.context.ActiveProfiles;
 
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
-//test from dari
+
 @DataJpaTest
 @ActiveProfiles("test")
 class RoleRepositoryTest {
-    @Autowired
-    private RoleRepository roleRepository;
 
     @Autowired
-    private TestEntityManager em;
+    private RoleRepository roleRepository;
 
     @Test
     void findByRoleName_returnsSavedRole() {
         // arrange
         Role userRole = new Role(AppRole.ROLE_USER);
-        em.persist(userRole);
-        em.flush();
+        roleRepository.save(userRole);
 
         // act
         Optional<Role> found = roleRepository.findByRoleName(AppRole.ROLE_USER);
