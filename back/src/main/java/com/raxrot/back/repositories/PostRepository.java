@@ -21,4 +21,10 @@ public interface PostRepository extends JpaRepository<Post, Long> {
   )
 """)
     Page<Post> findFollowingFeed(@Param("meId") Long meId, Pageable pageable);
+
+    long countByUser_UserId(Long userId);
+
+    @Query("SELECT COALESCE(SUM(p.viewsCount), 0) FROM Post p WHERE p.user.userId = :userId")
+    long sumViewsByUser(@Param("userId") Long userId);
+
 }

@@ -115,4 +115,28 @@ public class CommentServiceImpl implements CommentService {
             throw new ApiException("You are not allowed to delete this comment", HttpStatus.FORBIDDEN);
         }
     }
+
+    @Override
+    public CommentPageResponse getAllComments(Integer page, Integer size, String sortBy, String sortOrder) {
+        Sort sort = "desc".equalsIgnoreCase(sortOrder)
+                ? Sort.by(sortBy).descending()
+                : Sort.by(sortBy).ascending();
+
+        Pageable pageable = PageRequest.of(page, size, sort);
+        Page<Comment> commentPage = commentRepository.findAll(pageable);
+
+        List<CommentResponse> comments = commentPage.getContent().stream()
+                .map(c -> modelMapper.map(c, CommentResponse.class))
+                .toList();
+
+        CommentPageResponse resp = new CommentPageResponse();
+        resp.setContent(comments);
+        resp.setPageNumber(commentPage.getNumber());
+        resp.setPageSize(commentPage.getSize());
+        resp.setTotalElements(commentPage.getTotalElements());
+        resp.setTotalPages(commentPage.getTotalPages());
+        resp.setLastPage(commentPage.isLast());
+        return resp;
+    }
+
 }

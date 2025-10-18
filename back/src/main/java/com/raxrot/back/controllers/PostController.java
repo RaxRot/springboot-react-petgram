@@ -8,13 +8,22 @@ import com.raxrot.back.dtos.PostRequest;
 import com.raxrot.back.dtos.PostResponse;
 import com.raxrot.back.enums.AnimalType;
 import com.raxrot.back.exceptions.ApiException;
+import com.raxrot.back.models.Post;
+import com.raxrot.back.repositories.PostRepository;
 import com.raxrot.back.services.PostService;
 import lombok.RequiredArgsConstructor;
+import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+
+import java.util.List;
 
 @RequiredArgsConstructor
 @RequestMapping("/api")
@@ -22,6 +31,8 @@ import org.springframework.web.multipart.MultipartFile;
 public class PostController {
     private final PostService postService;
     private final ObjectMapper objectMapper;
+    private final PostRepository postRepository;
+    private final ModelMapper modelMapper;
 
     @PostMapping(value = "/posts", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<PostResponse> create(
@@ -90,4 +101,21 @@ public class PostController {
     ) {
         return ResponseEntity.ok(postService.getFollowingFeed(page, size, sortBy, sortOrder));
     }
+
+    @GetMapping("/public/posts/trending")
+    public ResponseEntity<PostPageResponse> getTrending(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by("viewsCount").descending());
+        Page<Post> postPage = postRepository.findAll(pageable);
+        List<PostResponse> posts = postPage.getContent().stream()
+                .map(p -> modelMapper.map(p, PostResponse.class))
+                .toList();
+
+        PostPageResponse response = new PostPageResponse(posts, page, size,
+                postPage.getTotalPages(), postPage.getTotalElements(), postPage.isLast());
+        return ResponseEntity.ok(response);
+    }
+
 }

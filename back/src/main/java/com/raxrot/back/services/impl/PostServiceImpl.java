@@ -104,11 +104,26 @@ public class PostServiceImpl implements PostService {
         return response;
     }
 
+    @Transactional
     @Override
     public PostResponse getPostById(Long postId) {
-        Post post = postRepository.findById(postId).orElseThrow(() -> new ApiException("Post not found", HttpStatus.NOT_FOUND));
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new ApiException("Post not found", HttpStatus.NOT_FOUND));
+
+        User me = null;
+        try {
+            me = authUtil.loggedInUser();
+        } catch (Exception ignored) {}
+
+        if (me == null || !post.getUser().getUserId().equals(me.getUserId())) {
+            post.setViewsCount(post.getViewsCount() + 1);
+            postRepository.save(post);
+        }
+
         return modelMapper.map(post, PostResponse.class);
     }
+
+
 
     @Transactional
     @Override

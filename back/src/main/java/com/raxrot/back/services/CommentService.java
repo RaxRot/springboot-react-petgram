@@ -9,4 +9,5 @@ public interface CommentService {
     CommentPageResponse getComments(Long postId, Integer page, Integer size, String sortBy, String sortOrder);
     CommentResponse updateComment(Long commentId, CommentRequest req);
     void deleteComment(Long commentId);
+    CommentPageResponse getAllComments(Integer page, Integer size, String sortBy, String sortOrder);
 }

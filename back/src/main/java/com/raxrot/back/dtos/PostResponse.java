@@ -21,4 +21,7 @@ public class PostResponse {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private UserResponseForSearch user;
+
+    //FOR VIEWS
+    private long viewsCount;
 }

@@ -2,9 +2,10 @@ package com.raxrot.back.services.impl;
 
 import com.raxrot.back.dtos.CheckoutRequest;
 import com.raxrot.back.dtos.StripeResponse;
-
 import com.raxrot.back.exceptions.ApiException;
+import com.raxrot.back.models.Donation;
 import com.raxrot.back.models.User;
+import com.raxrot.back.repositories.DonationRepository;
 import com.raxrot.back.repositories.UserRepository;
 import com.raxrot.back.services.EmailService;
 import com.raxrot.back.services.StripeService;
@@ -22,6 +23,7 @@ public class StripeServiceImpl implements StripeService {
     private final AuthUtil authUtil;
     private final UserRepository userRepository;
     private final EmailService emailService;
+    private final DonationRepository donationRepository;
 
     @Override
     public StripeResponse createCheckoutSession(CheckoutRequest req) {
@@ -72,6 +74,13 @@ public class StripeServiceImpl implements StripeService {
                     .build();
 
             Session session = Session.create(params);
+
+            Donation donation = new Donation();
+            donation.setDonor(donor);
+            donation.setReceiver(author);
+            donation.setAmount(req.getAmount());
+            donation.setCurrency(req.getCurrency());
+            donationRepository.save(donation);
 
              sendEmailToDonationReceiver(req, author, donor);
              sendEmailToDonationSender(donor, author);

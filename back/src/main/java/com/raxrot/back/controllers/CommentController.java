@@ -45,4 +45,16 @@ public class CommentController {
         commentService.deleteComment(commentId);
         return ResponseEntity.noContent().build();
     }
+
+    @GetMapping("/admin/comments")
+    public ResponseEntity<CommentPageResponse> getAllComments(
+            @RequestParam(defaultValue = "0") Integer pageNumber,
+            @RequestParam(defaultValue = "20") Integer pageSize,
+            @RequestParam(defaultValue = "createdAt") String sortBy,
+            @RequestParam(defaultValue = "desc") String sortOrder) {
+
+        CommentPageResponse comments = commentService.getAllComments(pageNumber, pageSize, sortBy, sortOrder);
+        return ResponseEntity.ok(comments);
+    }
+
 }
