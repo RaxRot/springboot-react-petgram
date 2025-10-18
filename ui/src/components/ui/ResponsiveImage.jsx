@@ -1,56 +1,82 @@
 import { useState } from "react"
 import { cn } from "@/lib/cn"
+import { motion } from "framer-motion"
 
-export default function ResponsiveImage({ src, alt = "", className = "", withHoverEffect = true }) {
+export default function ResponsiveImage({
+                                            src,
+                                            alt = "",
+                                            className = "",
+                                            withHoverEffect = true,
+                                        }) {
     const [isLoaded, setIsLoaded] = useState(false)
 
     return (
-        <div className={cn(
-            "relative group overflow-hidden",
-            withHoverEffect && "cursor-pointer",
-            // Fixed aspect ratio container
-            "aspect-[4/3] w-full",
-            className
-        )}>
-            {/* Main image with fixed size and cropping */}
-            <img
+        <motion.div
+            initial={{ opacity: 0, scale: 0.98 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.5, ease: "easeOut" }}
+            className={cn(
+                "relative overflow-hidden rounded-2xl isolate",
+                "aspect-[4/3] w-full bg-gradient-to-br from-gray-900/50 via-gray-800/40 to-gray-900/50 border border-white/10 backdrop-blur-xl",
+                withHoverEffect && "cursor-pointer group",
+                className
+            )}
+        >
+            {/* 🖼️ Actual Image */}
+            <motion.img
                 src={src}
                 alt={alt}
                 onLoad={() => setIsLoaded(true)}
+                initial={{ opacity: 0, scale: 1.03, filter: "blur(8px)" }}
+                animate={{
+                    opacity: isLoaded ? 1 : 0.5,
+                    scale: isLoaded ? 1 : 1.03,
+                    filter: isLoaded ? "blur(0px)" : "blur(8px)",
+                }}
+                transition={{ duration: 0.9, ease: "easeOut" }}
                 className={cn(
-                    "absolute inset-0 w-full h-full object-cover transition-all duration-700 ease-out",
-                    // Base styles
-                    "border border-white/10 shadow-lg shadow-cyan-500/10",
-                    // Loading state
-                    !isLoaded && "blur-sm scale-95 opacity-80",
-                    isLoaded && "blur-0 scale-100 opacity-100",
-                    // Hover effects
-                    withHoverEffect && [
-                        "group-hover:scale-110",
-                        "group-hover:shadow-cyan-500/20",
-                        "group-hover:border-cyan-400/30",
-                        "group-hover:shadow-xl"
-                    ]
+                    "absolute inset-0 w-full h-full object-cover transition-transform duration-700",
+                    "border border-transparent",
+                    withHoverEffect &&
+                    "group-hover:scale-110 group-hover:brightness-110 group-hover:saturate-150",
+                    "rounded-2xl"
                 )}
             />
 
-            {/* Shine effect on hover */}
+            {/* 💫 Shimmer light sweep */}
             {withHoverEffect && (
-                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent
-                              -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-in-out
-                              rounded-2xl pointer-events-none" />
+                <motion.div
+                    initial={false}
+                    whileHover={{ x: "100%" }}
+                    transition={{ duration: 1.2, ease: "easeInOut" }}
+                    className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full pointer-events-none"
+                />
             )}
 
-            {/* Subtle glow overlay */}
-            <div className="absolute inset-0 bg-gradient-to-br from-cyan-400/5 via-transparent to-purple-600/5
-                          rounded-2xl pointer-events-none opacity-70 group-hover:opacity-100
-                          transition-opacity duration-500" />
+            {/* 🌈 Neon glow overlay */}
+            <div
+                className={cn(
+                    "absolute inset-0 pointer-events-none rounded-2xl",
+                    "bg-gradient-to-br from-cyan-400/10 via-transparent to-purple-600/10 opacity-50 group-hover:opacity-100",
+                    "transition-opacity duration-500"
+                )}
+            />
 
-            {/* Loading skeleton */}
+            {/* 🧊 Soft border glow */}
+            <div
+                className={cn(
+                    "absolute inset-0 rounded-2xl pointer-events-none border border-white/5",
+                    "shadow-[0_0_25px_rgba(0,255,255,0.1)] group-hover:shadow-[0_0_35px_rgba(0,255,255,0.2)]",
+                    "transition-shadow duration-500"
+                )}
+            />
+
+            {/* 🌀 Skeleton shimmer while loading */}
             {!isLoaded && (
-                <div className="absolute inset-0 bg-gradient-to-r from-gray-800 to-gray-900
-                              rounded-2xl animate-pulse-slow" />
+                <div className="absolute inset-0 overflow-hidden rounded-2xl animate-pulse bg-gradient-to-r from-gray-800/60 via-gray-700/40 to-gray-800/60">
+                    <div className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-cyan-400/10 to-transparent animate-[shimmer_2s_infinite]" />
+                </div>
             )}
-        </div>
+        </motion.div>
     )
 }

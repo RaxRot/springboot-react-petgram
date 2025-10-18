@@ -29,7 +29,9 @@ export default function Settings() {
         )
 
         qc.clear()
-        try { await api.post("/api/auth/signout") } catch {}
+        try {
+            await api.post("/api/auth/signout")
+        } catch {}
         await signout()
         nav("/signin", { replace: true })
     }
@@ -54,23 +56,31 @@ export default function Settings() {
     }
 
     return (
-        <div className="min-h-screen py-8 px-4">
-            <div className="max-w-4xl mx-auto">
+        <div className="relative min-h-screen py-8 px-4">
+            <div className="max-w-4xl mx-auto space-y-8">
+
                 {/* Header */}
-                <div className="text-center mb-8">
+                <div className="text-center">
                     <h1 className="text-4xl font-bold bg-gradient-to-r from-cyan-400 to-purple-600 bg-clip-text text-transparent">
                         Account Settings
                     </h1>
-                    <p className="text-gray-600 dark:text-gray-400 mt-2">Manage your profile and security</p>
+                    <p className="text-[hsl(var(--muted-foreground))] mt-2">
+                        Manage your profile and security
+                    </p>
                 </div>
 
+                {/* Two panels */}
                 <div className="grid md:grid-cols-2 gap-8">
-                    {/* Change Username */}
-                    <div className="bg-white dark:bg-white/5 backdrop-blur-xl rounded-3xl p-6 border border-gray-200 dark:border-white/10 shadow-2xl shadow-cyan-500/10">
+
+                    {/* Username */}
+                    <div className="rounded-3xl p-6 border border-[hsl(var(--border))]
+                        bg-[hsl(var(--card))] text-[hsl(var(--foreground))]
+                        backdrop-blur-xl shadow-[0_0_25px_rgba(56,189,248,0.1)]
+                        transition-all duration-300">
                         <form onSubmit={changeUsername} className="space-y-4">
-                            <div className="text-center mb-4">
+                            <div className="text-center mb-2">
                                 <div className="text-3xl mb-2">👤</div>
-                                <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Change Username</h2>
+                                <h2 className="text-xl font-semibold">Change Username</h2>
                             </div>
 
                             <Input
@@ -83,7 +93,7 @@ export default function Settings() {
 
                             <Button
                                 type="submit"
-                                className="w-full py-3 bg-gradient-to-r from-cyan-400 to-purple-600"
+                                className="w-full py-3 bg-gradient-to-r from-cyan-400 to-purple-600 hover:shadow-[0_0_25px_hsl(var(--ring))]"
                                 disabled={!username.trim()}
                             >
                                 Update Username
@@ -91,12 +101,15 @@ export default function Settings() {
                         </form>
                     </div>
 
-                    {/* Change Password */}
-                    <div className="bg-white dark:bg-white/5 backdrop-blur-xl rounded-3xl p-6 border border-gray-200 dark:border-white/10 shadow-2xl shadow-cyan-500/10">
+                    {/* Password */}
+                    <div className="rounded-3xl p-6 border border-[hsl(var(--border))]
+                        bg-[hsl(var(--card))] text-[hsl(var(--foreground))]
+                        backdrop-blur-xl shadow-[0_0_25px_rgba(56,189,248,0.1)]
+                        transition-all duration-300">
                         <form onSubmit={changePassword} className="space-y-4">
-                            <div className="text-center mb-4">
+                            <div className="text-center mb-2">
                                 <div className="text-3xl mb-2">🔒</div>
-                                <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Change Password</h2>
+                                <h2 className="text-xl font-semibold">Change Password</h2>
                             </div>
 
                             <Input
@@ -107,7 +120,6 @@ export default function Settings() {
                                 className="w-full"
                                 required
                             />
-
                             <Input
                                 type="password"
                                 placeholder="New password"
@@ -116,7 +128,6 @@ export default function Settings() {
                                 className="w-full"
                                 required
                             />
-
                             <Input
                                 type="password"
                                 placeholder="Confirm new password"
@@ -128,7 +139,7 @@ export default function Settings() {
 
                             <Button
                                 type="submit"
-                                className="w-full py-3 bg-gradient-to-r from-cyan-400 to-purple-600"
+                                className="w-full py-3 bg-gradient-to-r from-cyan-400 to-purple-600 hover:shadow-[0_0_25px_hsl(var(--ring))]"
                                 disabled={!currentPassword || !newPassword || !confirm || newPassword !== confirm}
                             >
                                 Update Password
@@ -137,16 +148,16 @@ export default function Settings() {
                     </div>
                 </div>
 
-                {/* Additional Info */}
-                <div className="mt-8 text-center text-sm text-gray-500 dark:text-gray-400">
-                    <p>⚠️ Changing your credentials will log you out from all devices</p>
+                {/* Info */}
+                <div className="text-center text-sm text-[hsl(var(--muted-foreground))]">
+                    ⚠️ Changing your credentials will log you out from all devices
                 </div>
+            </div>
 
-                {/* Background elements */}
-                <div className="absolute inset-0 -z-10 overflow-hidden">
-                    <div className="absolute -top-20 -right-20 w-96 h-96 bg-cyan-500/10 rounded-full blur-3xl"></div>
-                    <div className="absolute -bottom-20 -left-20 w-96 h-96 bg-purple-600/10 rounded-full blur-3xl"></div>
-                </div>
+            {/* Background glow */}
+            <div className="absolute inset-0 -z-10 overflow-hidden">
+                <div className="absolute -top-20 -right-20 w-96 h-96 bg-cyan-500/10 rounded-full blur-3xl"></div>
+                <div className="absolute -bottom-20 -left-20 w-96 h-96 bg-purple-600/10 rounded-full blur-3xl"></div>
             </div>
         </div>
     )
