@@ -6,16 +6,15 @@ import com.raxrot.back.models.User;
 import com.raxrot.back.repositories.UserRepository;
 import com.raxrot.back.services.UserService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/public/users")
 @RequiredArgsConstructor
+@Slf4j
 public class PublicUserController {
 
     private final UserService userService;
@@ -23,15 +22,23 @@ public class PublicUserController {
 
     @GetMapping("/{username}")
     public ResponseEntity<PublicUserResponse> getPublicUser(@PathVariable String username) {
-        return ResponseEntity.ok(userService.getPublicUserByUsername(username));
+        log.info("🔎 Fetching public profile for username='{}'", username);
+        PublicUserResponse userResponse = userService.getPublicUserByUsername(username);
+        log.info("✅ Public profile retrieved successfully for username='{}'", username);
+        return ResponseEntity.ok(userResponse);
     }
 
-    //FIX LATER ADD TO SERVICE!!!!!!!!!!!!
+    // FIX LATER: ADD TO SERVICE
     @GetMapping("/username/{username}/id")
     public ResponseEntity<Long> getUserIdByUsername(@PathVariable String username) {
+        log.info("🆔 Fetching userId by username='{}'", username);
         Long id = userRepository.findByUserName(username)
                 .map(User::getUserId)
-                .orElseThrow(() -> new ApiException("User not found", HttpStatus.NOT_FOUND));
+                .orElseThrow(() -> {
+                    log.error("❌ User not found for username='{}'", username);
+                    return new ApiException("User not found", HttpStatus.NOT_FOUND);
+                });
+        log.info("✅ userId={} found for username='{}'", id, username);
         return ResponseEntity.ok(id);
     }
 }
