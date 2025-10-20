@@ -14,18 +14,23 @@ import org.springframework.stereotype.Service;
 public class EmailServiceImpl implements EmailService {
 
     private final JavaMailSender mailSender;
+
     @Value("${spring.mail.properties.mail.smtp.from}")
     private String from;
+
     public EmailServiceImpl(JavaMailSender mailSender) {
         this.mailSender = mailSender;
     }
 
     @Override
     public void sendEmail(String to, String subject, String body) {
+        log.info("Preparing to send email to '{}'", to);
 
         if (to == null || to.isBlank()) {
+            log.warn("Attempted to send email with empty recipient address");
             throw new ApiException("Recipient address is empty", HttpStatus.BAD_REQUEST);
         }
+
         if (subject == null) subject = "";
         if (body == null) body = "";
 
@@ -35,8 +40,12 @@ public class EmailServiceImpl implements EmailService {
             message.setTo(to);
             message.setSubject(subject);
             message.setText(body);
+
+            log.debug("Email details — From: {}, To: {}, Subject: '{}'", from, to, subject);
             mailSender.send(message);
-        }catch (Exception e) {
+            log.info("Email successfully sent to '{}'", to);
+
+        } catch (Exception e) {
             log.error("Failed to send email to {}: {}", to, e.getMessage(), e);
             throw new ApiException("Failed to send email", HttpStatus.INTERNAL_SERVER_ERROR);
         }
