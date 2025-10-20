@@ -7,6 +7,7 @@ import com.raxrot.back.repositories.PostRepository;
 import com.raxrot.back.repositories.UserRepository;
 import com.raxrot.back.services.AdminService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
@@ -14,7 +15,9 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class AdminServiceImpl implements AdminService {
+
     private final DonationRepository donationRepository;
     private final ModelMapper modelMapper;
     private final UserRepository userRepository;
@@ -23,28 +26,42 @@ public class AdminServiceImpl implements AdminService {
 
     @Override
     public List<DonationResponse> getAllDonations() {
-        return donationRepository.findAllByOrderByCreatedAtDesc().stream()
-                .map(d -> new DonationResponse(d.getId(),
+        log.info("Fetching all donations ordered by creation date (descending).");
+        List<DonationResponse> donations = donationRepository.findAllByOrderByCreatedAtDesc().stream()
+                .map(d -> new DonationResponse(
+                        d.getId(),
                         d.getDonor().getUserName(),
                         d.getReceiver().getUserName(),
-                        d.getAmount(), d.getCurrency(),
-                        d.getCreatedAt()))
+                        d.getAmount(),
+                        d.getCurrency(),
+                        d.getCreatedAt()
+                ))
                 .toList();
+        log.info("Fetched {} donations successfully.", donations.size());
+        return donations;
     }
 
     public long countUsers() {
-        return userRepository.count();
+        long count = userRepository.count();
+        log.info("Counted {} users.", count);
+        return count;
     }
 
     public long countDonations() {
-        return donationRepository.count();
+        long count = donationRepository.count();
+        log.info("Counted {} donations.", count);
+        return count;
     }
 
     public long countComments() {
-        return commentRepository.count();
+        long count = commentRepository.count();
+        log.info("Counted {} comments.", count);
+        return count;
     }
 
     public long countPosts() {
-        return postRepository.count();
+        long count = postRepository.count();
+        log.info("Counted {} posts.", count);
+        return count;
     }
 }
