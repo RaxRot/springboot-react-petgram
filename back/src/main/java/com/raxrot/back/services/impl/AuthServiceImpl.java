@@ -14,6 +14,7 @@ import com.raxrot.back.security.services.UserDetailsImpl;
 import com.raxrot.back.services.AuthService;
 import com.raxrot.back.services.EmailService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
@@ -34,6 +35,7 @@ import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class AuthServiceImpl implements AuthService {
 
     private final JwtUtils jwtUtils;
@@ -45,6 +47,7 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public ResponseEntity<UserInfoResponse> authenticate(LoginRequest loginRequest) {
+        log.info("Attempting authentication for username: {}", loginRequest.getUsername());
         try {
             Authentication authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(
@@ -62,6 +65,8 @@ public class AuthServiceImpl implements AuthService {
                     .map(GrantedAuthority::getAuthority)
                     .toList();
 
+            log.info("User '{}' authenticated successfully with roles: {}", userDetails.getUsername(), roles);
+
             UserInfoResponse resp = new UserInfoResponse(
                     userDetails.getId(),
                     userDetails.getUsername(),
@@ -74,17 +79,22 @@ public class AuthServiceImpl implements AuthService {
                     .body(resp);
 
         } catch (AuthenticationException ex) {
+            log.error("Authentication failed for username: {}", loginRequest.getUsername());
             throw new ApiException("Invalid username or password", HttpStatus.UNAUTHORIZED);
         }
     }
 
     @Override
     public ResponseEntity<?> register(SignupRequest signUpRequest) {
+        log.info("Attempting to register new user: {}", signUpRequest.getUsername());
+
         if (userRepository.existsByUserName(signUpRequest.getUsername())) {
+            log.warn("Registration failed: username '{}' already exists", signUpRequest.getUsername());
             return ResponseEntity.status(HttpStatus.CONFLICT)
                     .body(Map.of("message", "Username is already taken"));
         }
         if (userRepository.existsByEmail(signUpRequest.getEmail())) {
+            log.warn("Registration failed: email '{}' already in use", signUpRequest.getEmail());
             return ResponseEntity.status(HttpStatus.CONFLICT)
                     .body(Map.of("message", "Email is already in use"));
         }
@@ -116,6 +126,8 @@ public class AuthServiceImpl implements AuthService {
 
         user.setRoles(roles);
         User saved = userRepository.save(user);
+        log.info("User '{}' registered successfully with roles: {}", saved.getUserName(), saved.getRoles());
+
         sendEmail(signUpRequest);
 
         Map<String, Object> resp = Map.of(
@@ -129,6 +141,7 @@ public class AuthServiceImpl implements AuthService {
     }
 
     private void sendEmail(SignupRequest signUpRequest) {
+        log.info("Sending welcome email to: {}", signUpRequest.getEmail());
         emailService.sendEmail(
                 signUpRequest.getEmail(),
                 "🐾 Welcome to PetGram!",
@@ -138,6 +151,7 @@ public class AuthServiceImpl implements AuthService {
                         "Have fun sharing cute moments with your pets! 💕\n\n" +
                         "— The PetGram Team"
         );
+        log.info("Welcome email sent successfully to: {}", signUpRequest.getEmail());
     }
 
     @Override
@@ -146,6 +160,8 @@ public class AuthServiceImpl implements AuthService {
         List<String> roles = userDetails.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority)
                 .toList();
+
+        log.info("Returning user info for '{}'", userDetails.getUsername());
 
         UserInfoResponse resp = new UserInfoResponse(
                 userDetails.getId(),
@@ -159,7 +175,9 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public ResponseEntity<?> signout() {
+        log.info("User signout initiated.");
         ResponseCookie cookie = jwtUtils.getCleanJwtCookie();
+        log.info("JWT cookie cleared. Logout successful.");
         return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE, cookie.toString()).body("Logout successful");
     }
 }
