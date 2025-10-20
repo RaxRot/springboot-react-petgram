@@ -11,6 +11,7 @@ import com.raxrot.back.services.FileUploadService;
 import com.raxrot.back.services.PetService;
 import com.raxrot.back.utils.AuthUtil;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.*;
 import org.springframework.http.HttpStatus;
@@ -20,6 +21,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class PetServiceImpl implements PetService {
@@ -33,15 +35,20 @@ public class PetServiceImpl implements PetService {
     @Override
     public PetResponse createPet(PetRequest req, MultipartFile file) {
         User me = authUtil.loggedInUser();
+        log.info("User '{}' is creating a new pet: {}", me.getUserName(), req.getName());
+
         Pet pet = modelMapper.map(req, Pet.class);
         pet.setOwner(me);
 
         if (file != null && !file.isEmpty()) {
+            log.info("Uploading photo for new pet '{}'", req.getName());
             String photoUrl = fileUploadService.uploadFile(file);
             pet.setPhotoUrl(photoUrl);
         }
 
         Pet saved = petRepository.save(pet);
+        log.info("Pet '{}' created successfully by user '{}'", saved.getName(), me.getUserName());
+
         PetResponse resp = modelMapper.map(saved, PetResponse.class);
         resp.setOwnerUsername(me.getUserName());
         resp.setOwnerProfilePic(me.getProfilePic());
@@ -51,6 +58,8 @@ public class PetServiceImpl implements PetService {
     @Override
     public PetPageResponse getMyPets(int page, int size) {
         User me = authUtil.loggedInUser();
+        log.info("Fetching pets for user '{}' (page={}, size={})", me.getUserName(), page, size);
+
         Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
         Page<Pet> petPage = petRepository.findAllByOwner_UserId(me.getUserId(), pageable);
 
@@ -58,12 +67,15 @@ public class PetServiceImpl implements PetService {
                 .map(p -> modelMapper.map(p, PetResponse.class))
                 .toList();
 
+        log.info("Fetched {} pets for user '{}'", petPage.getTotalElements(), me.getUserName());
         return new PetPageResponse(content, petPage.getNumber(), petPage.getSize(),
                 petPage.getTotalPages(), petPage.getTotalElements(), petPage.isLast());
     }
 
     @Override
     public PetPageResponse getPetsByUsername(String username, int page, int size) {
+        log.info("Fetching pets for username='{}' (page={}, size={})", username, page, size);
+
         Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
         Page<Pet> petPage = petRepository.findAllByOwner_UserName(username, pageable);
 
@@ -71,6 +83,7 @@ public class PetServiceImpl implements PetService {
                 .map(p -> modelMapper.map(p, PetResponse.class))
                 .toList();
 
+        log.info("Fetched {} pets for user '{}'", petPage.getTotalElements(), username);
         return new PetPageResponse(content, petPage.getNumber(), petPage.getSize(),
                 petPage.getTotalPages(), petPage.getTotalElements(), petPage.isLast());
     }
@@ -79,26 +92,39 @@ public class PetServiceImpl implements PetService {
     @Override
     public PetResponse updatePet(Long id, PetRequest req, MultipartFile file) {
         User me = authUtil.loggedInUser();
+        log.info("User '{}' attempting to update pet ID {}", me.getUserName(), id);
+
         Pet pet = petRepository.findById(id)
-                .orElseThrow(() -> new ApiException("Pet not found", HttpStatus.NOT_FOUND));
+                .orElseThrow(() -> {
+                    log.error("Pet with ID {} not found for update by user '{}'", id, me.getUserName());
+                    return new ApiException("Pet not found", HttpStatus.NOT_FOUND);
+                });
 
         if (!pet.getOwner().getUserId().equals(me.getUserId())) {
+            log.warn("User '{}' attempted to edit someone else's pet ID {}", me.getUserName(), id);
             throw new ApiException("You cannot edit this pet", HttpStatus.FORBIDDEN);
         }
 
         modelMapper.map(req, pet);
 
         if (file != null && !file.isEmpty()) {
+            log.info("User '{}' uploading new photo for pet ID {}", me.getUserName(), id);
             String newPhoto = fileUploadService.uploadFile(file);
+
             if (pet.getPhotoUrl() != null) {
                 try {
+                    log.debug("Deleting old photo for pet ID {}", id);
                     fileUploadService.deleteFile(pet.getPhotoUrl());
-                } catch (Exception ignored) {}
+                } catch (Exception e) {
+                    log.warn("Failed to delete old photo for pet ID {}: {}", id, e.getMessage());
+                }
             }
+
             pet.setPhotoUrl(newPhoto);
         }
 
         Pet updated = petRepository.save(pet);
+        log.info("Pet ID {} successfully updated by user '{}'", id, me.getUserName());
         return modelMapper.map(updated, PetResponse.class);
     }
 
@@ -106,27 +132,42 @@ public class PetServiceImpl implements PetService {
     @Override
     public void deletePet(Long id) {
         User me = authUtil.loggedInUser();
+        log.info("User '{}' attempting to delete pet ID {}", me.getUserName(), id);
+
         Pet pet = petRepository.findById(id)
-                .orElseThrow(() -> new ApiException("Pet not found", HttpStatus.NOT_FOUND));
+                .orElseThrow(() -> {
+                    log.error("Pet with ID {} not found for deletion by user '{}'", id, me.getUserName());
+                    return new ApiException("Pet not found", HttpStatus.NOT_FOUND);
+                });
 
         if (!pet.getOwner().getUserId().equals(me.getUserId())) {
+            log.warn("User '{}' attempted to delete someone else's pet ID {}", me.getUserName(), id);
             throw new ApiException("You cannot delete this pet", HttpStatus.FORBIDDEN);
         }
 
         if (pet.getPhotoUrl() != null) {
             try {
+                log.info("Deleting photo for pet ID {}", id);
                 fileUploadService.deleteFile(pet.getPhotoUrl());
-            } catch (Exception ignored) {}
+            } catch (Exception e) {
+                log.warn("Failed to delete photo for pet ID {}: {}", id, e.getMessage());
+            }
         }
 
         petRepository.delete(pet);
+        log.info("Pet ID {} successfully deleted by user '{}'", id, me.getUserName());
     }
 
     @Override
     public PetResponse getPetById(Long id) {
+        log.info("Fetching pet by ID {}", id);
         Pet pet = petRepository.findById(id)
-                .orElseThrow(() -> new ApiException("Pet not found", HttpStatus.NOT_FOUND));
+                .orElseThrow(() -> {
+                    log.error("Pet with ID {} not found", id);
+                    return new ApiException("Pet not found", HttpStatus.NOT_FOUND);
+                });
+
+        log.info("Pet ID {} fetched successfully", id);
         return modelMapper.map(pet, PetResponse.class);
     }
-
 }
