@@ -2,6 +2,12 @@ package com.raxrot.back.controllers;
 
 import com.raxrot.back.dtos.UserStatsResponse;
 import com.raxrot.back.services.AnalyticsService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -11,10 +17,27 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/user")
 @RequiredArgsConstructor
+@Tag(
+        name = "User Analytics",
+        description = "Endpoints for retrieving personal statistics and analytics data for a logged-in user."
+)
+@SecurityRequirement(name = "Bearer Authentication")
 public class AnalyticsController {
 
     private final AnalyticsService analyticsService;
 
+    @Operation(
+            summary = "Get user statistics",
+            description = "Returns analytical data and personal statistics of the currently logged-in user, such as total posts, likes, comments, and followers.",
+            responses = {
+                    @ApiResponse(
+                            responseCode = "200",
+                            description = "Successfully fetched personal analytics",
+                            content = @Content(schema = @Schema(implementation = UserStatsResponse.class))
+                    ),
+                    @ApiResponse(responseCode = "401", description = "Unauthorized — missing or invalid JWT token")
+            }
+    )
     @GetMapping("/stats")
     public ResponseEntity<UserStatsResponse> getMyStats() {
         log.info("User requested personal analytics statistics");
