@@ -11,6 +11,7 @@ import com.raxrot.back.services.StoryService;
 import com.raxrot.back.utils.AuthUtil;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -24,6 +25,7 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.Optional;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class StoryServiceImpl implements StoryService {
@@ -48,19 +50,26 @@ public class StoryServiceImpl implements StoryService {
     @Override
     public StoryResponse create(MultipartFile file) {
         User me = authUtil.loggedInUser();
+        log.info("User '{}' attempting to create a new story", me.getUserName());
+
         if (me.isBanned()) {
+            log.warn("Banned user '{}' tried to create a story", me.getUserName());
             throw new ApiException("User is banned", HttpStatus.FORBIDDEN);
         }
+
         if (file == null || file.isEmpty()) {
+            log.warn("User '{}' attempted to upload an empty file for story", me.getUserName());
             throw new ApiException("File is empty", HttpStatus.BAD_REQUEST);
         }
 
         String contentType = Optional.ofNullable(file.getContentType()).orElse("");
         if (!contentType.startsWith("image/")) {
+            log.warn("User '{}' tried to upload invalid file type '{}' for story", me.getUserName(), contentType);
             throw new ApiException("Only image files are allowed", HttpStatus.BAD_REQUEST);
         }
 
         String url = fileUploadService.uploadFile(file);
+        log.info("File uploaded successfully for story by '{}': {}", me.getUserName(), url);
 
         Story story = new Story();
         story.setUser(me);
@@ -68,22 +77,31 @@ public class StoryServiceImpl implements StoryService {
         story.setExpiresAt(LocalDateTime.now().plus(TTL));
 
         Story saved = storyRepository.save(story);
+        log.info("Story created successfully by user '{}' with ID {}", me.getUserName(), saved.getId());
         return toDto(saved);
     }
 
     @Override
     public Page<StoryResponse> myStories(int page, int size) {
         User me = authUtil.loggedInUser();
+        log.info("Fetching stories for user '{}' (page={}, size={})", me.getUserName(), page, size);
+
         Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
         Page<Story> pg = storyRepository.findAllByUser_UserIdAndExpiresAtAfter(me.getUserId(), LocalDateTime.now(), pageable);
+
+        log.info("Fetched {} active stories for user '{}'", pg.getTotalElements(), me.getUserName());
         return pg.map(this::toDto);
     }
 
     @Override
     public Page<StoryResponse> followingStories(int page, int size) {
         User me = authUtil.loggedInUser();
+        log.info("Fetching following stories for user '{}' (page={}, size={})", me.getUserName(), page, size);
+
         Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
         Page<Story> pg = storyRepository.findFollowingStories(me.getUserId(), LocalDateTime.now(), pageable);
+
+        log.info("Fetched {} following stories for user '{}'", pg.getTotalElements(), me.getUserName());
         return pg.map(this::toDto);
     }
 
@@ -91,33 +109,53 @@ public class StoryServiceImpl implements StoryService {
     @Override
     public void delete(Long storyId) {
         User me = authUtil.loggedInUser();
+        log.info("User '{}' attempting to delete story ID {}", me.getUserName(), storyId);
+
         Story story = storyRepository.findById(storyId)
-                .orElseThrow(() -> new ApiException("Story not found", HttpStatus.NOT_FOUND));
+                .orElseThrow(() -> {
+                    log.error("Story with ID {} not found for deletion by '{}'", storyId, me.getUserName());
+                    return new ApiException("Story not found", HttpStatus.NOT_FOUND);
+                });
 
         boolean isOwner = story.getUser().getUserId().equals(me.getUserId());
         boolean isAdmin = me.getRoles().stream().anyMatch(r -> r.getRoleName() == AppRole.ROLE_ADMIN);
         if (!isOwner && !isAdmin) {
+            log.warn("User '{}' attempted to delete someone else's story (ID {})", me.getUserName(), storyId);
             throw new ApiException("You are not allowed to delete this story", HttpStatus.FORBIDDEN);
         }
 
         try {
             fileUploadService.deleteFile(story.getImageUrl());
-        } catch (Exception ignored) {}
+            log.info("Deleted file for story ID {}", storyId);
+        } catch (Exception e) {
+            log.warn("Failed to delete file for story ID {}: {}", storyId, e.getMessage());
+        }
 
         storyRepository.delete(story);
+        log.info("Story ID {} successfully deleted by user '{}'", storyId, me.getUserName());
     }
 
     @Override
     public Page<StoryResponse> getAllStories(int page, int size) {
+        log.info("Fetching all stories (page={}, size={})", page, size);
+
         Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
-        return storyRepository.findAll(pageable).map(this::toDto);
+        Page<StoryResponse> pg = storyRepository.findAll(pageable).map(this::toDto);
+
+        log.info("Fetched {} total stories", pg.getTotalElements());
+        return pg;
     }
 
-    @Override
     @Transactional
+    @Override
     public StoryResponse viewStory(Long id) {
+        log.info("Fetching story ID {} for viewing", id);
+
         Story story = storyRepository.findById(id)
-                .orElseThrow(() -> new ApiException("Story not found", HttpStatus.NOT_FOUND));
+                .orElseThrow(() -> {
+                    log.error("Story with ID {} not found", id);
+                    return new ApiException("Story not found", HttpStatus.NOT_FOUND);
+                });
 
         User me = null;
         try {
@@ -127,8 +165,10 @@ public class StoryServiceImpl implements StoryService {
         if (me == null || !story.getUser().getUserId().equals(me.getUserId())) {
             story.setViewsCount(story.getViewsCount() + 1);
             storyRepository.save(story);
+            log.debug("Increased views count for story ID {} to {}", id, story.getViewsCount());
         }
 
+        log.info("Story ID {} viewed successfully", id);
         return toDto(story);
     }
 }
