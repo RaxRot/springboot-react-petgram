@@ -1,37 +1,50 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-from transformers import pipeline
+from transformers import AutoModelForCausalLM, AutoTokenizer
+import torch
 import re
 import random
 
-app = Flask(_name_)
-CORS(app, resources={r"/": {"origins": ""}})  # allow requests from React
+app = Flask(__name__)
+CORS(app)
 
-# 💡 Russian-English lightweight model
-chatbot = pipeline("text-generation", model="ai-forever/rugpt3small_based_on_gpt2")
+#Load dialogue model
+model_name = "microsoft/DialoGPT-small"
+tokenizer = AutoTokenizer.from_pretrained(model_name)
+model = AutoModelForCausalLM.from_pretrained(model_name)
 
 @app.route("/chat", methods=["POST"])
 def chat():
-    msg = request.json["message"]
+    msg = request.json.get("message", "").strip()
+    if not msg:
+        return jsonify({"reply": "Meow? Say something first 🐾"})
 
-    # 🐾 detect language
+    # detect language
     if re.search("[а-яА-ЯёЁ]", msg):
-        prompt = f"Отвечай по-русски коротко и мило на: {msg}"
-        ending = random.choice([" мяу!", " мур!", " мяяяу~"])
+        prompt = f"Ты милый котик. Отвечай по-русски коротко, мило и дружелюбно. Сообщение: {msg}"
+        ending = random.choice([" мяу!", " мур~", " мяяяу!"])
     else:
-        prompt = f"Reply briefly and kindly in English to: {msg}"
-        ending = random.choice([" meow!", " purr~", " meooow!"])
+        prompt = f"You are a cute, funny talking cat. Reply briefly and kindly to: {msg}"
+        ending = random.choice([" meow!", " purr~", " nya~"])
 
-    # 🧠 generate text
-    result = chatbot(prompt, max_new_tokens=60)
-    text = result[0]["generated_text"]
+    #generate
+    inputs = tokenizer.encode(prompt + tokenizer.eos_token, return_tensors="pt")
+    reply_ids = model.generate(
+        inputs,
+        max_length=80,
+        pad_token_id=tokenizer.eos_token_id,
+        do_sample=True,
+        top_p=0.92,
+        temperature=0.7,
+    )
+    reply = tokenizer.decode(reply_ids[:, inputs.shape[-1]:][0], skip_special_tokens=True)
 
-    # clean
-    if ":" in text:
-        text = text.split(":", 1)[-1].strip()
+    #clean
+    reply = re.sub(r"[\r\n]+", " ", reply).strip()
+    if len(reply) > 120:
+        reply = reply[:120] + "..."
+    return jsonify({"reply": reply + ending})
 
-    reply = text + ending
-    return jsonify({"reply": reply})
 
-if _name_ == "_main_":
+if __name__ == "__main__":
     app.run(port=5000)
