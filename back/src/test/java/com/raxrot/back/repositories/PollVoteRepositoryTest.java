@@ -21,40 +21,44 @@ class PollVoteRepositoryTest {
     private PollVoteRepository pollVoteRepository;
 
     @Autowired
-    private UserRepository userRepository;
-
-    @Autowired
-    private PostRepository postRepository;
-
-    @Autowired
     private PollRepository pollRepository;
 
     @Autowired
     private PollOptionRepository pollOptionRepository;
 
+    @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
+    private PostRepository postRepository;
+
     private User user1;
     private User user2;
-    private Post post;
     private Poll poll;
     private PollOption option1;
     private PollOption option2;
 
     @BeforeEach
     void setUp() {
+        // Create users
         user1 = userRepository.save(new User("alice", "alice@example.com", "pwd"));
         user2 = userRepository.save(new User("bob", "bob@example.com", "pwd"));
 
-        post = postRepository.save(new Post(null, "Poll Post", "desc", "img", AnimalType.DOG, null, null, user1,
-                List.of(), List.of(), List.of(), 0));
+        // Create post (each poll belongs to a post)
+        Post post = postRepository.save(new Post(
+                null, "Poll Post", "desc", "img", AnimalType.DOG,
+                null, null, user1, List.of(), List.of(), List.of(), 0
+        ));
 
+        // Create poll
         poll = new Poll();
         poll.setPost(post);
         poll.setQuestion("What is your favorite color?");
         poll = pollRepository.save(poll);
 
-        option1 = new PollOption(null, poll, "Red", 0L);
-        option2 = new PollOption(null, poll, "Blue", 0L);
-        pollOptionRepository.saveAll(List.of(option1, option2));
+        // Create options
+        option1 = pollOptionRepository.save(new PollOption(null, poll, "Red", 0L));
+        option2 = pollOptionRepository.save(new PollOption(null, poll, "Blue", 0L));
     }
 
     @Test
@@ -84,12 +88,14 @@ class PollVoteRepositoryTest {
 
         // assert
         assertEquals(2, votes.size(), "Should return all votes for given poll");
-        assertEquals(List.of(user1.getUserId(), user2.getUserId()),
-                votes.stream().map(v -> v.getUser().getUserId()).toList());
+        assertEquals(
+                List.of(user1.getUserId(), user2.getUserId()),
+                votes.stream().map(v -> v.getUser().getUserId()).toList()
+        );
     }
 
     @Test
-    @DisplayName("should return empty when poll has no votes")
+    @DisplayName("should return empty list when poll has no votes")
     void findByPoll_Id_returnsEmptyListWhenNoVotes() {
         // act
         List<PollVote> votes = (List<PollVote>) pollVoteRepository.findByPoll_Id(poll.getId());
