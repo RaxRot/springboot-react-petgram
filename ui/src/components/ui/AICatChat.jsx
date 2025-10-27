@@ -2,42 +2,25 @@ import { useState } from "react"
 import axios from "axios"
 import Button from "@/components/ui/Button"
 
-// 🐱 Floating AI Cat Chat component
+// 🐱 Floating AI Cat Chat — fetches an animal fact on button click
 export default function AICatChat() {
-    // State variables
-    const [open, setOpen] = useState(false)            // controls open/close of the chat window
-    const [input, setInput] = useState("")             // current text in input field
+    const [open, setOpen] = useState(false)
     const [messages, setMessages] = useState([
-        { from: "bot", text: "Meow! I’m Petgram’s chat cat, wanna talk? 🐾" },
-    ]) // array of chat messages
-    const [loading, setLoading] = useState(false)      // shows “cat is thinking” while waiting for response
+        { from: "bot", text: "Tap “Get fact” and I’ll tell you a fun animal fact! 🐾" },
+    ])
+    const [loading, setLoading] = useState(false)
 
-    // 📨 Send message to local AI server (Flask backend)
-    const sendMessage = async () => {
-        if (!input.trim()) return                        // ignore empty messages
-
-        // Add user message to the chat
-        const userMsg = { from: "user", text: input }
-        setMessages((prev) => [...prev, userMsg])
-        setInput("")
+    const getFact = async () => {
         setLoading(true)
-
         try {
-            // POST request to your Flask API
-            const res = await axios.post("http://localhost:5000/chat", {
-                message: input,
-            })
-
-            // Add the AI cat's reply to the chat
-            setMessages((prev) => [
-                ...prev,
-                { from: "bot", text: res.data.reply || "meow?" },
-            ])
+            // Backend /chat can return {reply: "..."} or {fact: "..."}
+            const res = await axios.post("http://localhost:5000/chat", {})
+            const text = res.data?.reply ?? res.data?.fact ?? "meow?"
+            setMessages((prev) => [...prev, { from: "bot", text }])
         } catch (err) {
-            // Error handling if the server is down or fails
             setMessages((prev) => [
                 ...prev,
-                { from: "bot", text: "Meow... the server fell asleep 😿" },
+                { from: "bot", text: "Meow... I couldn’t fetch a fact right now 😿" },
             ])
         } finally {
             setLoading(false)
@@ -51,6 +34,7 @@ export default function AICatChat() {
                 <button
                     onClick={() => setOpen(true)}
                     className="w-14 h-14 bg-gradient-to-r from-cyan-400 to-purple-600 text-3xl rounded-full shadow-[0_0_25px_rgba(56,189,248,0.4)] hover:scale-110 transition-all"
+                    aria-label="Open PetCat chat"
                 >
                     🐱
                 </button>
@@ -61,12 +45,13 @@ export default function AICatChat() {
                 <div className="w-80 h-96 bg-[hsl(var(--card))]/95 backdrop-blur-xl border border-[hsl(var(--border))] rounded-2xl shadow-[0_0_30px_rgba(56,189,248,0.2)] flex flex-col overflow-hidden transition-all">
                     {/* 🔹 Top bar */}
                     <div className="flex justify-between items-center px-4 py-3 bg-gradient-to-r from-cyan-400 to-purple-600 text-white font-semibold">
-                        <span>🐾 Chat with PetCat</span>
+                        <span>🐾 PetCat — Animal Facts</span>
                         <button
                             onClick={() => setOpen(false)}
                             className="hover:scale-110 transition-transform"
+                            aria-label="Close"
                         >
-                            ✖
+                            ✖️
                         </button>
                     </div>
 
@@ -75,7 +60,7 @@ export default function AICatChat() {
                         {messages.map((msg, i) => (
                             <div
                                 key={i}
-                                className={`max-w-[80%] px-3 py-2 rounded-xl text-sm ${
+                                className={`max-w-[85%] px-3 py-2 rounded-xl text-sm ${
                                     msg.from === "user"
                                         ? "ml-auto bg-gradient-to-r from-cyan-400 to-purple-600 text-white shadow-[0_0_10px_rgba(56,189,248,0.4)]"
                                         : "bg-[hsl(var(--muted))]/20 text-[hsl(var(--foreground))]"
@@ -86,27 +71,15 @@ export default function AICatChat() {
                         ))}
                         {loading && (
                             <div className="text-[hsl(var(--muted-foreground))] text-sm">
-                                Cat is thinking... 💤
+                                Cat is fetching a fact... 💤
                             </div>
                         )}
                     </div>
 
-                    {/* ✏️ Input field + Send button */}
-                    <div className="p-3 border-t border-[hsl(var(--border))] flex gap-2">
-                        <input
-                            value={input}
-                            onChange={(e) => setInput(e.target.value)}
-                            onKeyDown={(e) => e.key === "Enter" && sendMessage()} // allows pressing Enter
-                            placeholder="Write to the cat..."
-                            className="flex-1 px-3 py-2 rounded-xl bg-[hsl(var(--muted))]/15 border border-[hsl(var(--border))] text-sm focus:outline-none focus:ring-2 focus:ring-cyan-400/60"
-                        />
-                        <Button
-                            onClick={sendMessage}
-                            size="sm"
-                            variant="primary"
-                            disabled={loading}
-                        >
-                            Send
+                    {/* 🐾 Single action: Get fact */}
+                    <div className="p-3 border-t border-[hsl(var(--border))] flex gap-2 justify-center">
+                        <Button onClick={getFact} size="sm" variant="primary" disabled={loading}>
+                            {loading ? "Fetching..." : "Get fact"}
                         </Button>
                     </div>
                 </div>
