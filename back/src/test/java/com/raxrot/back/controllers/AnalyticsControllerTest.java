@@ -2,7 +2,13 @@ package com.raxrot.back.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.raxrot.back.dtos.UserStatsResponse;
+import com.raxrot.back.models.User;
+import com.raxrot.back.security.jwt.AuthTokenFilter;
+import com.raxrot.back.security.jwt.JwtUtils;
+import com.raxrot.back.security.services.UserDetailsServiceImpl;
 import com.raxrot.back.services.AnalyticsService;
+import com.raxrot.back.services.ReportService;
+import com.raxrot.back.utils.AuthUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -14,11 +20,12 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.io.ByteArrayInputStream;
+
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 /**
  * ✅ Unit-тест для AnalyticsController.
@@ -29,13 +36,19 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class AnalyticsControllerTest {
 
     @MockBean
-    private com.raxrot.back.security.jwt.JwtUtils jwtUtils;
+    private JwtUtils jwtUtils;
 
     @MockBean
-    private com.raxrot.back.security.jwt.AuthTokenFilter authTokenFilter;
+    private AuthTokenFilter authTokenFilter;
 
     @MockBean
-    private com.raxrot.back.security.services.UserDetailsServiceImpl userDetailsService;
+    private UserDetailsServiceImpl userDetailsService;
+
+    @MockBean
+    private ReportService reportService;
+
+    @MockBean
+    private AuthUtil authUtil;
 
 
     @MockBean
@@ -82,4 +95,27 @@ class AnalyticsControllerTest {
 
         verify(analyticsService, times(1)).getMyStats();
     }
+
+    @Test
+    @DisplayName("GET /api/user/stats/export — should return PDF file")
+    void exportMyStatsAsPdf_ShouldReturnPdf() throws Exception {
+        User mockUser = new User();
+        mockUser.setUserId(1L);
+        mockUser.setUserName("alice");
+        mockUser.setEmail("alice@example.com");
+
+        Mockito.when(authUtil.loggedInUser()).thenReturn(mockUser);
+        Mockito.when(analyticsService.getMyStats()).thenReturn(userStatsResponse);
+        Mockito.when(reportService.generateUserStatsPdf(Mockito.any(), Mockito.any()))
+                .thenReturn(new ByteArrayInputStream("dummy pdf content".getBytes()));
+
+        mockMvc.perform(get("/api/user/stats/export")
+                        .accept(MediaType.APPLICATION_PDF))
+                .andExpect(status().isOk())
+                .andExpect(header().string("Content-Disposition", "attachment; filename=user_stats.pdf"))
+                .andExpect(header().string("Content-Type", "application/pdf"));
+
+        verify(reportService, times(1)).generateUserStatsPdf(Mockito.any(), Mockito.any());
+    }
+
 }
