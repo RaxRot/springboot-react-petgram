@@ -5,6 +5,7 @@ import com.raxrot.back.dtos.DonationResponse;
 import com.raxrot.back.dtos.UserPageResponse;
 import com.raxrot.back.dtos.UserResponse;
 import com.raxrot.back.services.AdminService;
+import com.raxrot.back.services.InsightsService;
 import com.raxrot.back.services.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -19,6 +20,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
@@ -46,6 +48,9 @@ class AdminControllerTest {
 
     @MockBean
     private AdminService adminService;
+
+    @MockBean
+    private InsightsService insightsService;
 
     @Autowired
     private MockMvc mockMvc;
@@ -175,4 +180,26 @@ class AdminControllerTest {
         verify(adminService, times(1)).countComments();
         verify(adminService, times(1)).countPosts();
     }
+
+    @Test
+    @DisplayName("GET /api/admin/users/insights — should return insights map")
+    void getAdminInsights_ShouldReturnInsights() throws Exception {
+        Mockito.when(insightsService.getInsights()).thenReturn(
+                Map.of(
+                        "mostLikedPost", "Cute Cat 🐱",
+                        "topDonor", "alice (€50)",
+                        "mostActiveCommenter", "bob (12 comments)"
+                )
+        );
+
+        mockMvc.perform(get("/api/admin/users/insights")
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.mostLikedPost").value("Cute Cat 🐱"))
+                .andExpect(jsonPath("$.topDonor").value("alice (€50)"))
+                .andExpect(jsonPath("$.mostActiveCommenter").value("bob (12 comments)"));
+
+        verify(insightsService, times(1)).getInsights();
+    }
+
 }
