@@ -200,7 +200,52 @@ export default function Profile() {
                 </div>
             </div>
 
-            {isMe && <UserAnalytics />}
+            {isMe && (
+                <div className="space-y-4">
+                    <UserAnalytics />
+
+                    <motion.div
+                        className="text-right"
+                        initial={{ opacity: 0, y: 15 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.6, ease: "easeOut" }}
+                    >
+                        <motion.button
+                            onClick={async () => {
+                                try {
+                                    const res = await api.get("/api/user/stats/export", {
+                                        responseType: "blob",
+                                    })
+
+                                    const url = window.URL.createObjectURL(new Blob([res.data]))
+                                    const link = document.createElement("a")
+                                    link.href = url
+                                    link.setAttribute("download", "user_stats.pdf")
+                                    document.body.appendChild(link)
+                                    link.click()
+                                    link.remove()
+                                    window.URL.revokeObjectURL(url)
+
+                                    toast.success("📄 Report downloaded successfully!")
+                                } catch (err) {
+                                    toast.error("🚫 Failed to download report")
+                                    console.error(err)
+                                }
+                            }}
+                            whileHover={{ scale: 1.06, boxShadow: "0px 0px 18px rgba(56,189,248,0.5)" }}
+                            whileTap={{ scale: 0.95 }}
+                            transition={{ type: "spring", stiffness: 250, damping: 15 }}
+                            className="px-6 py-3 rounded-xl font-semibold text-white
+                   bg-gradient-to-r from-cyan-500 to-purple-600
+                   shadow-[0_0_20px_rgba(56,189,248,0.2)]
+                   hover:shadow-[0_0_30px_rgba(56,189,248,0.4)]
+                   focus:outline-none"
+                        >
+                            📄 Download my PDF report
+                        </motion.button>
+                    </motion.div>
+                </div>
+            )}
 
             {/* Pets Section */}
             <section className="space-y-6">

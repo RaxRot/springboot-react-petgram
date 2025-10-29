@@ -5,12 +5,14 @@ import { toast } from "sonner"
 import UserSearch from "@/components/ui/UserSearch"
 import ThemeToggle from "@/components/ThemeToggle"
 import { useEffect, useRef, useState } from "react"
-import AICatChat from "@/components/ui/AICatChat" // 🐱 import the AI cat chat
+import AICatChat from "@/components/ui/AICatChat"
+import WeatherWidget from "@/components/ui/WeatherWidget.jsx"
 
 export default function Navbar() {
     const { user, isAdmin, signout } = useAuth()
     const nav = useNavigate()
     const [openAdmin, setOpenAdmin] = useState(false)
+    const [openMenu, setOpenMenu] = useState(false)
     const [scrolled, setScrolled] = useState(false)
     const dropdownRef = useRef(null)
 
@@ -49,7 +51,7 @@ export default function Navbar() {
                         : "bg-[hsl(var(--background))]/40 border-b border-transparent"
                 }`}
             >
-                <div className="max-w-7xl mx-auto px-6 sm:px-8 h-20 flex items-center justify-between">
+                <div className="w-full px-4 sm:px-8 md:px-12 h-20 flex items-center justify-between">
                     {/* 🐾 Logo */}
                     <Link
                         to="/"
@@ -58,8 +60,22 @@ export default function Navbar() {
                         🐾 PetSocial
                     </Link>
 
-                    {/* 🔗 Navigation */}
-                    <nav className="flex items-center gap-3">
+                    {/* 📱 Mobile Menu Button */}
+                    <button
+                        onClick={() => setOpenMenu(!openMenu)}
+                        className="sm:hidden text-3xl text-[hsl(var(--foreground))] hover:text-cyan-400 transition-all"
+                    >
+                        {openMenu ? "✖" : "☰"}
+                    </button>
+
+                    {/* 🌍 Navigation */}
+                    <nav
+                        className={`${
+                            openMenu
+                                ? "flex flex-col absolute top-20 left-0 w-full bg-[hsl(var(--background))]/95 backdrop-blur-lg p-6 border-t border-[hsl(var(--border))] sm:hidden"
+                                : "hidden sm:flex"
+                        } sm:flex items-center gap-4 lg:gap-6 transition-all duration-300`}
+                    >
                         <NavLink to="/" className={tab}>
                             Feed
                         </NavLink>
@@ -89,18 +105,14 @@ export default function Navbar() {
                     ▼
                   </span>
                                 </button>
-
                                 {openAdmin && (
-                                    <div
-                                        className="absolute right-0 mt-3 w-56 rounded-2xl border border-[hsl(var(--border))]
-                    bg-[hsl(var(--card))]/90 backdrop-blur-xl
-                    shadow-[0_0_25px_rgba(56,189,248,0.15)] overflow-hidden z-50"
-                                    >
+                                    <div className="absolute right-0 mt-3 w-56 rounded-2xl border border-[hsl(var(--border))] bg-[hsl(var(--card))]/90 backdrop-blur-xl shadow-[0_0_25px_rgba(56,189,248,0.15)] overflow-hidden z-50">
                                         {[
                                             { to: "/admin/dashboard", icon: "🧩", label: "Dashboard" },
                                             { to: "/admin/users", icon: "👥", label: "Users" },
                                             { to: "/admin/donations", icon: "💰", label: "Donations" },
                                             { to: "/admin/comments", icon: "💬", label: "Comments" },
+                                            { to: "/admin/insights", icon: "📈", label: "Insights" },
                                         ].map((item) => (
                                             <NavLink
                                                 key={item.to}
@@ -117,12 +129,14 @@ export default function Navbar() {
                             </div>
                         )}
 
-                        <UserSearch />
-                        <ThemeToggle />
+                        {/* 🔎 Search */}
+                        <div className="hidden sm:block">
+                            <UserSearch />
+                        </div>
 
                         {/* 👤 User */}
                         {user ? (
-                            <>
+                            <div className="flex flex-col sm:flex-row items-center gap-3 mt-3 sm:mt-0">
                                 <NavLink
                                     to={`/u/${user.username}`}
                                     className="flex items-center gap-2 text-[hsl(var(--foreground))] hover:text-cyan-400 transition-all"
@@ -132,20 +146,12 @@ export default function Navbar() {
                                     </div>
                                     <span>@{user.username}</span>
                                 </NavLink>
-
                                 <NavLink to="/settings" className={tab}>
                                     Settings
                                 </NavLink>
-
-                                <Button
-                                    onClick={logout}
-                                    className="px-4 py-2 bg-gradient-to-r from-red-500 to-pink-600 hover:from-red-600 hover:to-pink-700 text-white rounded-xl shadow-[0_0_15px_rgba(239,68,68,0.3)] hover:shadow-[0_0_25px_rgba(239,68,68,0.5)] hover:scale-105 transition-all font-medium"
-                                >
-                                    Logout
-                                </Button>
-                            </>
+                            </div>
                         ) : (
-                            <>
+                            <div className="flex flex-col sm:flex-row gap-3 mt-4 sm:mt-0">
                                 <NavLink
                                     to="/signin"
                                     className="px-4 py-2 text-[hsl(var(--foreground))] hover:text-cyan-400 hover:bg-[hsl(var(--muted))]/10 rounded-xl transition-all duration-300 font-medium"
@@ -158,9 +164,23 @@ export default function Navbar() {
                                 >
                                     Sign up
                                 </NavLink>
-                            </>
+                            </div>
                         )}
                     </nav>
+
+                    {/* 🌤️ Weather + Theme + Logout (Desktop) */}
+                    <div className="hidden sm:flex items-center gap-3">
+                        <WeatherWidget />
+                        <ThemeToggle />
+                        {user && (
+                            <Button
+                                onClick={logout}
+                                className="px-4 py-2 bg-gradient-to-r from-red-500 to-pink-600 hover:from-red-600 hover:to-pink-700 text-white rounded-xl shadow-[0_0_15px_rgba(239,68,68,0.3)] hover:shadow-[0_0_25px_rgba(239,68,68,0.5)] hover:scale-105 transition-all font-medium"
+                            >
+                                Logout
+                            </Button>
+                        )}
+                    </div>
                 </div>
             </header>
 

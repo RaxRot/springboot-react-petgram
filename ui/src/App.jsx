@@ -23,6 +23,7 @@ import StoryCreate from "@/pages/stories/StoryCreate.jsx";
 import StoryView from "@/pages/stories/StoryView.jsx";
 import MyPets from "@/pages/MyPets.jsx";
 import PetDetails from "@/pages/pets/PetDetails.jsx";
+import AdminInsights from "@/pages/admin/AdminInsights.jsx";
 
 export default function App() {
     const { me } = useAuth();
@@ -65,6 +66,7 @@ export default function App() {
                         <Route path="/admin/users" element={<AdminUsers />} />
                         <Route path="/admin/donations" element={<AdminDonations />} />
                         <Route path="/admin/comments" element={<AdminComments />} />
+                        <Route path="/admin/insights" element={<AdminInsights />} />
                     </Route>
                 </Routes>
             </main>

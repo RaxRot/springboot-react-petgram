@@ -5,6 +5,7 @@ import com.raxrot.back.dtos.DonationResponse;
 import com.raxrot.back.dtos.UserPageResponse;
 import com.raxrot.back.dtos.UserResponse;
 import com.raxrot.back.services.AdminService;
+import com.raxrot.back.services.InsightsService;
 import com.raxrot.back.services.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -34,6 +35,7 @@ public class AdminController {
 
     private final UserService userService;
     private final AdminService adminService;
+    private final InsightsService insightsService;
 
     @Operation(
             summary = "Get all users (paginated)",
@@ -170,5 +172,21 @@ public class AdminController {
                 "posts", adminService.countPosts()
         );
         return ResponseEntity.ok(stats);
+    }
+
+    @Operation(
+            summary = "Get admin insights dashboard",
+            description = "Returns daily platform insights: most liked post, top donor, and most active commenter.",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Insights successfully fetched",
+                            content = @Content(schema = @Schema(implementation = Map.class)))
+            }
+    )
+    @GetMapping("/insights")
+    public ResponseEntity<Map<String, Object>> getAdminInsights() {
+        log.info("📊 Admin requested insights dashboard data");
+        Map<String, Object> insights = insightsService.getInsights();
+        log.info("✅ Insights fetched successfully: {}", insights);
+        return ResponseEntity.ok(insights);
     }
 }

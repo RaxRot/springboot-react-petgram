@@ -1,7 +1,10 @@
 package com.raxrot.back.controllers;
 
 import com.raxrot.back.dtos.UserStatsResponse;
+import com.raxrot.back.models.User;
 import com.raxrot.back.services.AnalyticsService;
+import com.raxrot.back.services.ReportService;
+import com.raxrot.back.utils.AuthUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -11,7 +14,11 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import java.io.ByteArrayInputStream;
 
 @Slf4j
 @RestController
@@ -25,6 +32,8 @@ import org.springframework.web.bind.annotation.*;
 public class AnalyticsController {
 
     private final AnalyticsService analyticsService;
+    private final ReportService reportService;
+    private final AuthUtil authUtil;
 
     @Operation(
             summary = "Get user statistics",
@@ -58,4 +67,27 @@ public class AnalyticsController {
 
         return ResponseEntity.ok(stats);
     }
+
+    @GetMapping("/stats/export")
+    public ResponseEntity<byte[]> exportMyStatsAsPdf() {
+        log.info("User requested PDF export of analytics report");
+
+        User me = authUtil.loggedInUser();
+        UserStatsResponse stats = analyticsService.getMyStats();
+        ByteArrayInputStream pdfStream = reportService.generateUserStatsPdf(me, stats);
+
+        byte[] pdfBytes;
+        try {
+            pdfBytes = pdfStream.readAllBytes();
+        } catch (Exception e) {
+            log.error("Error reading generated PDF bytes: {}", e.getMessage());
+            return ResponseEntity.internalServerError().build();
+        }
+
+        return ResponseEntity.ok()
+                .header("Content-Disposition", "attachment; filename=user_stats.pdf")
+                .header("Content-Type", "application/pdf")
+                .body(pdfBytes);
+    }
+
 }
