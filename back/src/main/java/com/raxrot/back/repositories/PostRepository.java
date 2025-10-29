@@ -8,6 +8,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.time.LocalDateTime;
+
 public interface PostRepository extends JpaRepository<Post, Long> {
     Page<Post> findAllByUser_UserName(String username, Pageable pageable);
     Page<Post> findAllByAnimalType(AnimalType animalType, Pageable pageable);
@@ -27,4 +29,7 @@ public interface PostRepository extends JpaRepository<Post, Long> {
     @Query("SELECT COALESCE(SUM(p.viewsCount), 0) FROM Post p WHERE p.user.userId = :userId")
     long sumViewsByUser(@Param("userId") Long userId);
 
+    Post findTopByCreatedAtBetweenOrderByLikesDesc(LocalDateTime start, LocalDateTime end);
+
+    Post findTopByOrderByViewsCountDesc();
 }
