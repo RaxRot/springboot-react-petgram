@@ -24,7 +24,8 @@ public class WeatherServiceImpl implements WeatherService {
 
     private final Map<String, CacheEntry> cache = new ConcurrentHashMap<>();
 
-    private record CacheEntry(String summary, Instant expiresAt) {}
+    record CacheEntry(String summary, Instant expiresAt) {}
+
 
     @Override
     public String getWeatherSummary(double lat, double lon) {
@@ -125,5 +126,10 @@ public class WeatherServiceImpl implements WeatherService {
     @Scheduled(fixedRate = 7_200_000)
     public void cleanupCache() {
         cache.entrySet().removeIf(e -> e.getValue().expiresAt().isBefore(Instant.now()));
+    }
+
+    //Package access for testing!!!Dont touch!!!
+    Map<String, CacheEntry> getCache() {
+        return cache;
     }
 }
