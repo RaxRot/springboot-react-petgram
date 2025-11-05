@@ -5,6 +5,8 @@ import Skeleton from "@/components/ui/Skeleton.jsx"
 import Button from "@/components/ui/Button.jsx"
 import RandomPetGame from "@/components/RandomPetGame.jsx"
 import { motion } from "framer-motion"
+import { toast } from "sonner"
+import axios from "axios"
 
 export default function PetDetails() {
     const { id } = useParams()
@@ -30,6 +32,35 @@ export default function PetDetails() {
         )
 
     const pet = petQ.data
+
+    const analyzePet = async () => {
+        if (!pet.photoUrl) {
+            toast.error("No photo available for analysis 🐾")
+            return
+        }
+
+        try {
+            const { data } = await axios.post("http://localhost:5000/analyze", {
+                imageUrl: pet.photoUrl,
+            })
+
+            toast.custom(() => (
+                <div className="rounded-2xl border border-border bg-card/90 p-4 text-left shadow-lg max-w-xs">
+                    <div className="text-lg font-bold mb-1">AI Analysis ✅</div>
+                    <div className="text-sm text-muted-foreground space-y-1">
+                        <p>🧬 Species: <b>{data.species}</b></p>
+                        {data.breed && (
+                            <p>🏷️ Breed: <b>{data.breed}</b></p>
+                        )}
+                        <p>📝 {data.description}</p>
+                    </div>
+                </div>
+            ), { duration: 6000 })
+
+        } catch (e) {
+            toast.error("AI analysis failed 😿")
+        }
+    }
 
     return (
         <div
@@ -72,7 +103,7 @@ export default function PetDetails() {
                 )}
             </div>
 
-            {/* 👤 Владелец */}
+            {/* 👤 Владелец + Analyze Button */}
             <div className="pt-4 border-t border-[hsl(var(--border))] flex items-center justify-between">
                 <div>
                     <p className="text-sm text-[hsl(var(--muted-foreground))]">Owner:</p>
@@ -83,12 +114,22 @@ export default function PetDetails() {
                         @{pet.ownerUsername}
                     </Link>
                 </div>
-                <Button
-                    onClick={() => window.history.back()}
-                    className="bg-gradient-to-r from-cyan-400 to-purple-600 hover:shadow-[0_0_25px_rgba(56,189,248,0.4)]"
-                >
-                    ← Back
-                </Button>
+
+                <div className="flex gap-2">
+                    <Button
+                        onClick={analyzePet}
+                        className="bg-gradient-to-r from-purple-500 to-pink-500 hover:shadow-[0_0_25px_rgba(236,72,153,0.5)]"
+                    >
+                        🔍 Analyze Pet
+                    </Button>
+
+                    <Button
+                        onClick={() => window.history.back()}
+                        className="bg-gradient-to-r from-cyan-400 to-purple-600 hover:shadow-[0_0_25px_rgba(56,189,248,0.4)]"
+                    >
+                        ← Back
+                    </Button>
+                </div>
             </div>
 
             {/* 🧸 Мини-игра: случайный питомец */}

@@ -11,6 +11,7 @@ import { confirmToast } from "@/components/ui/Confirm"
 import ResponsiveImage from "@/components/ui/ResponsiveImage"
 import Skeleton from "@/components/ui/Skeleton"
 import Poll from "@/components/posts/Poll.jsx"
+import axios from "axios"
 
 export default function PostDetails() {
     const { id } = useParams()
@@ -89,6 +90,33 @@ export default function PostDetails() {
         onError: () => toast.error("🚫 Failed to ban"),
     })
 
+    const analyzePost = async () => {
+        if (!postQ.data?.imageUrl) {
+            toast.error("No image to analyze 🐾")
+            return
+        }
+
+        try {
+            const { data } = await axios.post("http://localhost:5000/analyze", {
+                imageUrl: postQ.data.imageUrl,
+            })
+
+            toast.custom(() => (
+                <div className="rounded-2xl border border-border bg-card/95 p-4 text-left shadow-lg max-w-xs">
+                    <div className="text-lg font-bold mb-1">AI Analysis 🐾</div>
+                    <div className="text-sm text-muted-foreground space-y-1">
+                        <p>🧬 Species: <b>{data.species}</b></p>
+                        {data.breed && <p>🏷️ Breed: <b>{data.breed}</b></p>}
+                        {data.score && <p>📊 Confidence: <b>{(data.score * 100).toFixed(1)}%</b></p>}
+                    </div>
+                </div>
+            ), { duration: 6000 })
+
+        } catch (e) {
+            toast.error("AI analysis failed 😿")
+        }
+    }
+
     if (postQ.isLoading)
         return (
             <div className="max-w-2xl mx-auto p-6 space-y-6">
@@ -106,8 +134,7 @@ export default function PostDetails() {
     if (postQ.error)
         return (
             <div className="max-w-2xl mx-auto p-6">
-                <div className="border border-destructive/30 bg-destructive/10
-                    text-destructive-foreground rounded-2xl p-4">
+                <div className="border border-destructive/30 bg-destructive/10 text-destructive-foreground rounded-2xl p-4">
                     Error: {postQ.error.message}
                 </div>
             </div>
@@ -138,16 +165,12 @@ export default function PostDetails() {
         <div className="max-w-2xl mx-auto p-6 space-y-6">
 
             {/* Header */}
-            <div className="p-6 rounded-2xl border border-border
-                bg-card text-foreground
-                backdrop-blur-xl shadow-[0_0_25px_rgba(56,189,248,0.1)]">
+            <div className="p-6 rounded-2xl border border-border bg-card text-foreground backdrop-blur-xl shadow-[0_0_25px_rgba(56,189,248,0.1)]">
                 <h1 className="text-3xl font-bold">{p.title}</h1>
 
                 {p.animalType && (
                     <div className="flex items-center gap-3 mt-2">
-                        <div className="text-sm text-ring font-medium">
-                            {p.animalType}
-                        </div>
+                        <div className="text-sm text-ring font-medium">{p.animalType}</div>
                         <Button
                             variant="outline"
                             onClick={playAnimalSound}
@@ -163,9 +186,7 @@ export default function PostDetails() {
                         <div className="w-10 h-10 bg-gradient-to-r from-cyan-400 to-purple-600 rounded-full flex items-center justify-center text-white font-bold">
                             {p.user?.userName?.[0]?.toUpperCase()}
                         </div>
-                        <span className="group-hover:text-ring transition-colors">
-                            @{p.user?.userName ?? "user"}
-                        </span>
+                        <span className="group-hover:text-ring transition-colors">@{p.user?.userName ?? "user"}</span>
                     </Link>
 
                     {authorIdQ.data && user && user.username !== p.user?.userName && (
@@ -180,9 +201,20 @@ export default function PostDetails() {
 
             {/* Image */}
             {p.imageUrl && (
-                <div className="rounded-2xl overflow-hidden border border-border
-                    bg-card">
+                <div className="rounded-2xl overflow-hidden border border-border bg-card">
                     <ResponsiveImage src={p.imageUrl} alt={p.title} />
+                </div>
+            )}
+
+            {/* 🐾 AI Analyze Button */}
+            {p.imageUrl && (
+                <div className="flex justify-center">
+                    <Button
+                        onClick={analyzePost}
+                        className="bg-gradient-to-r from-pink-500 to-cyan-400 hover:shadow-[0_0_25px_rgba(236,72,153,0.5)] text-white px-5 py-2 rounded-full flex items-center gap-2"
+                    >
+                        🐾 AI Analyze
+                    </Button>
                 </div>
             )}
 
@@ -190,9 +222,7 @@ export default function PostDetails() {
             <Poll postId={id} postAuthorUsername={p.user?.userName} />
 
             {/* Actions */}
-            <div className="p-4 rounded-2xl border border-border
-                bg-card text-foreground
-                backdrop-blur-xl">
+            <div className="p-4 rounded-2xl border border-border bg-card text-foreground backdrop-blur-xl">
                 <div className="flex flex-wrap items-center gap-3">
                     <Button onClick={() => like.mutate()} variant="outline" className="flex items-center gap-2">
                         ❤️ Like
@@ -201,9 +231,7 @@ export default function PostDetails() {
                         💔 Unlike
                     </Button>
 
-                    <span className="text-lg font-semibold text-ring">
-                        ❤ {likesCountQ.data ?? 0}
-                    </span>
+                    <span className="text-lg font-semibold text-ring">❤ {likesCountQ.data ?? 0}</span>
 
                     <div className="flex-1"></div>
 
@@ -223,15 +251,14 @@ export default function PostDetails() {
             </div>
 
             {/* Comments */}
-            <section className="p-6 rounded-2xl border border-border
-                bg-card text-foreground
-                backdrop-blur-xl space-y-4">
+            <section className="p-6 rounded-2xl border border-border bg-card text-foreground backdrop-blur-xl space-y-4">
                 <h2 className="text-2xl font-bold mb-4">Comments 💬</h2>
 
                 {commentsQ.data?.content?.map((c) => (
-                    <div key={c.id}
-                         className="p-4 rounded-xl border border-border/50
-                            bg-muted/20 text-foreground">
+                    <div
+                        key={c.id}
+                        className="p-4 rounded-xl border border-border/50 bg-muted/20 text-foreground"
+                    >
                         <div className="flex items-start justify-between gap-4">
                             <div className="flex-1">
                                 <div className="flex items-center gap-2 mb-2">
