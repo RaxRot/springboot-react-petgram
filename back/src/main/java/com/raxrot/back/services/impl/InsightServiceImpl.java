@@ -17,7 +17,7 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class InsightsServiceImpl implements InsightsService {
+public class InsightServiceImpl implements InsightsService {
 
     private final PostRepository postRepository;
     private final CommentRepository commentRepository;

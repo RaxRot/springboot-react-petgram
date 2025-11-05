@@ -21,7 +21,7 @@ import static org.mockito.BDDMockito.given;
 @ExtendWith(MockitoExtension.class)
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 @DisplayName("InsightsServiceImpl Tests")
-class InsightsServiceImplTest {
+class InsightServiceImplTest {
 
     @Mock private PostRepository postRepository;
     @Mock private CommentRepository commentRepository;
@@ -29,7 +29,7 @@ class InsightsServiceImplTest {
     @Mock private PetRepository petRepository;
 
     @InjectMocks
-    private InsightsServiceImpl insightsService;
+    private InsightServiceImpl insightsService;
 
     private User user1, user2;
     private Post post1, post2;
