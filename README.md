@@ -17,7 +17,8 @@ A small but powerful social network where users can:
 - 💸 Donations via Stripe checkout
 - 📧 Email notifications (registration, donations, reminders)
 - ⚙️ Admin panel (ban/unban/delete users, manage content)
-
+- 🐾 Random animal facts generator
+- 🤖 AI bot that detects animal breed from photos
 ---
 
 ## 📸 Screenshots
